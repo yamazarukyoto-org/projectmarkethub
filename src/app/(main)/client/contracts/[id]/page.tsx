@@ -14,6 +14,114 @@ import Link from "next/link";
 import { PaymentModal } from "@/components/features/contract/PaymentModal";
 import { ReviewModal } from "@/components/features/contract/ReviewModal";
 
+// 納品ファイルのダウンロードコンポーネント（ダウンロード回数制限付き）
+function DeliveryFileDownload({ 
+    contractId, 
+    attachmentIndex, 
+    url, 
+    displayName, 
+    userId 
+}: { 
+    contractId: string; 
+    attachmentIndex: number; 
+    url: string; 
+    displayName: string; 
+    userId: string;
+}) {
+    const [downloadCount, setDownloadCount] = useState(0);
+    const [canDownload, setCanDownload] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const MAX_DOWNLOADS = 3;
+
+    useEffect(() => {
+        // 初期ダウンロード回数を取得
+        const fetchDownloadCount = async () => {
+            if (!userId) return;
+            try {
+                const response = await fetch(
+                    `/api/attachments/download?type=delivery&id=${contractId}&attachmentIndex=${attachmentIndex}&userId=${userId}`
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    setDownloadCount(data.downloadCount);
+                    setCanDownload(data.canDownload);
+                }
+            } catch (error) {
+                console.error("Failed to fetch download count:", error);
+            }
+        };
+        fetchDownloadCount();
+    }, [contractId, attachmentIndex, userId]);
+
+    const handleDownload = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        
+        if (!userId) {
+            alert("ダウンロードするにはログインが必要です。");
+            return;
+        }
+
+        if (!canDownload) {
+            alert("ダウンロード回数の上限（3回）に達しました。");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/attachments/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'delivery',
+                    id: contractId,
+                    attachmentIndex,
+                    userId,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setDownloadCount(data.downloadCount);
+                setCanDownload(data.downloadCount < MAX_DOWNLOADS);
+                // ダウンロードを実行
+                window.open(url, '_blank');
+            } else {
+                alert(data.error || "ダウンロードに失敗しました。");
+            }
+        } catch (error) {
+            console.error("Download error:", error);
+            alert("ダウンロード中にエラーが発生しました。");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <button
+            onClick={handleDownload}
+            disabled={isLoading || !canDownload}
+            className={`flex items-center justify-between w-full gap-2 p-2 rounded transition-colors text-sm ${
+                canDownload 
+                    ? 'bg-white hover:bg-blue-50 text-primary cursor-pointer border border-blue-200' 
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+            }`}
+        >
+            <div className="flex items-center gap-2 overflow-hidden">
+                <FileText size={14} className="flex-shrink-0" />
+                <span className="truncate">{displayName}</span>
+            </div>
+            <span className={`text-xs font-medium px-2 py-0.5 rounded whitespace-nowrap ${
+                canDownload 
+                    ? 'bg-blue-100 text-blue-600'
+                    : 'bg-red-100 text-red-600'
+            }`}>
+                {downloadCount}/{MAX_DOWNLOADS}回
+            </span>
+        </button>
+    );
+}
+
 export default function ClientContractDetailPage() {
     const params = useParams();
     const router = useRouter();
@@ -323,9 +431,12 @@ export default function ClientContractDetailPage() {
 
                     {/* 契約合意待ち */}
                     {contract.status === 'pending_signature' && (
-                        <div className="bg-orange-50 p-4 rounded-lg border border-orange-100">
-                            <h4 className="font-bold text-orange-900 mb-2">ワーカーの契約合意を待っています</h4>
-                            <p className="text-sm text-orange-800">
+                        <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-500">
+                            <h4 className="font-bold text-orange-900 mb-2 flex items-center gap-2">
+                                <Clock size={20} />
+                                ワーカーの契約合意を待っています
+                            </h4>
+                            <p className="text-sm text-orange-800 pl-7">
                                 契約オファーを送信しました。ワーカーが契約内容を確認し、合意するのをお待ちください。
                                 ワーカーが合意すると、仮決済の手続きに進むことができます。
                             </p>
@@ -334,39 +445,45 @@ export default function ClientContractDetailPage() {
 
                     {/* 仮決済ボタン */}
                     {contract.status === 'waiting_for_escrow' && (
-                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
-                            <h4 className="font-bold text-yellow-900 mb-2">仮決済手続きが必要です</h4>
-                            <p className="text-sm text-yellow-800 mb-4">
+                        <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+                            <h4 className="font-bold text-yellow-900 mb-2 flex items-center gap-2">
+                                <CreditCard size={20} />
+                                仮決済手続きが必要です
+                            </h4>
+                            <p className="text-sm text-yellow-800 mb-4 pl-7">
                                 業務を開始するには、まず仮決済（決済予約）を行う必要があります。
                                 仮決済が完了すると、ワーカーに業務開始の通知が送られます。
                             </p>
-                            <Button onClick={handleEscrow} disabled={isProcessing} className="bg-accent hover:bg-accent/90 text-white">
-                                <CreditCard size={16} className="mr-2" />
-                                仮決済へ進む
-                            </Button>
+                            <div className="pl-7">
+                                <Button onClick={handleEscrow} disabled={isProcessing} className="bg-accent hover:bg-accent/90 text-white">
+                                    <CreditCard size={16} className="mr-2" />
+                                    仮決済へ進む
+                                </Button>
+                            </div>
                         </div>
                     )}
 
                     {(contract.status === 'submitted' || contract.status === 'completed' || contract.status === 'transfer_failed') && (
-                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                            <h4 className="font-bold text-blue-900 mb-2">納品物</h4>
-                            <div className="space-y-2 text-sm text-blue-800 mb-4 bg-white p-3 rounded border border-blue-200 overflow-hidden">
+                        <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                            <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
+                                <FileText size={20} />
+                                納品物
+                            </h4>
+                            <div className="space-y-2 text-sm text-blue-800 mb-4 bg-white p-3 rounded border border-blue-200 overflow-hidden ml-7">
                                 <div className="overflow-hidden">
                                     <strong>成果物:</strong>
+                                    <p className="text-xs text-gray-500 mt-1">注意）各ファイルのダウンロードは3回までです。</p>
                                     {contract.deliveryFiles && contract.deliveryFiles.length > 0 ? (
-                                        <div className="mt-1 space-y-1">
+                                        <div className="mt-2 space-y-2">
                                             {contract.deliveryFiles.map((file, index) => (
-                                                <a 
+                                                <DeliveryFileDownload
                                                     key={index}
-                                                    href={file.url} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer" 
-                                                    className="flex items-center gap-2 underline text-primary overflow-hidden text-ellipsis hover:text-blue-600"
-                                                    style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}
-                                                >
-                                                    <FileText size={14} />
-                                                    {file.name}
-                                                </a>
+                                                    contractId={contract.id}
+                                                    attachmentIndex={index}
+                                                    url={file.url}
+                                                    displayName={file.name}
+                                                    userId={user?.uid || ''}
+                                                />
                                             ))}
                                         </div>
                                     ) : contract.deliveryFileUrl ? (
@@ -391,7 +508,7 @@ export default function ClientContractDetailPage() {
                             </div>
                             
                             {contract.status === 'submitted' && (
-                                <div>
+                                <div className="pl-7">
                                     <p className="text-sm text-blue-800 mb-4">
                                         内容を確認し、問題なければ検収を完了してください。
                                     </p>
@@ -405,18 +522,20 @@ export default function ClientContractDetailPage() {
                             )}
 
                             {contract.status === 'transfer_failed' && (
-                                <div className="bg-red-50 border border-red-200 p-4 rounded-lg mt-4">
+                                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mt-4 ml-7">
                                     <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2">
                                         <AlertCircle size={18} />
                                         送金エラーが発生しました
                                     </h4>
-                                    <p className="text-sm text-red-800 mb-4">
+                                    <p className="text-sm text-red-800 mb-4 pl-7">
                                         支払いは確定しましたが、ワーカーへの送金処理に失敗しました。
                                         しばらく待ってから再試行するか、運営にお問い合わせください。
                                     </p>
-                                    <Button onClick={handleCapture} disabled={isProcessing} variant="danger">
-                                        送金を再試行する
-                                    </Button>
+                                    <div className="pl-7">
+                                        <Button onClick={handleCapture} disabled={isProcessing} variant="danger">
+                                            送金を再試行する
+                                        </Button>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -424,27 +543,32 @@ export default function ClientContractDetailPage() {
 
                     {/* データ削除予定の警告 */}
                     {contract.status === 'completed' && contract.completedAt && (
-                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
                             <h4 className="font-bold text-yellow-900 mb-2 flex items-center gap-2">
                                 <AlertCircle size={18} />
                                 データ保管期限のお知らせ
                             </h4>
-                            <p className="text-sm text-yellow-800 mb-2">
-                                この契約データ（納品物、メッセージ等）は、完了日から<strong>3か月後</strong>に自動削除されます。
-                            </p>
-                            <p className="text-sm text-yellow-800 mb-2">
-                                <strong>削除予定日: {new Date(contract.completedAt.toDate().getTime() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString('ja-JP')}</strong>
-                            </p>
-                            <p className="text-sm text-yellow-700">
-                                必要なデータは削除前にダウンロードして保存してください。削除後の復元はできません。
-                            </p>
+                            <div className="pl-7">
+                                <p className="text-sm text-yellow-800 mb-2">
+                                    この契約データ（納品物、メッセージ等）は、完了日から<strong>3か月後</strong>に自動削除されます。
+                                </p>
+                                <p className="text-sm text-yellow-800 mb-2">
+                                    <strong>削除予定日: {new Date(contract.completedAt.toDate().getTime() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString('ja-JP')}</strong>
+                                </p>
+                                <p className="text-sm text-yellow-700">
+                                    必要なデータは削除前にダウンロードして保存してください。削除後の復元はできません。
+                                </p>
+                            </div>
                         </div>
                     )}
 
                     {/* 評価セクション */}
                     {contract.status === 'completed' && (
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <h4 className="font-bold text-gray-900 mb-2">評価</h4>
+                        <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-gray-400">
+                            <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                                <MessageSquare size={18} />
+                                評価
+                            </h4>
                             {contract.clientReviewed ? (
                                 <div className="text-green-600 font-medium flex items-center gap-2">
                                     <CheckCircle size={16} />
@@ -465,15 +589,16 @@ export default function ClientContractDetailPage() {
 
                     {/* 領収書ダウンロードセクション */}
                     {contract.status === 'completed' && contract.completedAt && (
-                        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
                             <h4 className="font-bold text-green-900 mb-2 flex items-center gap-2">
                                 <FileText size={18} />
                                 領収書
                             </h4>
-                            <p className="text-sm text-green-800 mb-4">
+                            <p className="text-sm text-green-800 mb-4 pl-7">
                                 この取引の領収書をPDFでダウンロードできます。経費精算や確定申告にご利用ください。
                             </p>
-                            <Button
+                            <div className="pl-7">
+                                <Button
                                 onClick={async () => {
                                     try {
                                         // ワーカー名を取得
@@ -505,129 +630,138 @@ export default function ClientContractDetailPage() {
                                         alert('領収書の生成に失敗しました。');
                                     }
                                 }}
-                                variant="outline"
-                                className="text-green-700 border-green-300 hover:bg-green-100"
-                            >
-                                <Download size={16} className="mr-2" />
-                                領収書をダウンロード (PDF)
-                            </Button>
+                                    variant="outline"
+                                    className="text-green-700 border-green-300 hover:bg-green-100"
+                                >
+                                    <Download size={16} className="mr-2" />
+                                    領収書をダウンロード (PDF)
+                                </Button>
+                            </div>
                         </div>
                     )}
 
                     {/* 仮決済期限切れ - 再仮払いボタン */}
                     {contract.status === 'payment_expired' && (
-                        <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-500">
                             <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2">
                                 <AlertCircle size={18} />
                                 仮決済の期限が切れました
                             </h4>
-                            <p className="text-sm text-red-800 mb-4">
+                            <p className="text-sm text-red-800 mb-4 pl-7">
                                 Stripeの仮決済（オーソリ）は7日間の有効期限があります。
                                 期限内に検収が完了しなかったため、仮決済がキャンセルされました。
                                 <br /><br />
                                 契約を継続する場合は、再度仮払いを行ってください。
                             </p>
-                            <Button 
-                                onClick={handleEscrow} 
-                                disabled={isProcessing} 
-                                className="bg-accent hover:bg-accent/90 text-white"
-                            >
-                                <CreditCard size={16} className="mr-2" />
-                                再仮払いを行う
-                            </Button>
+                            <div className="pl-7">
+                                <Button 
+                                    onClick={handleEscrow} 
+                                    disabled={isProcessing} 
+                                    className="bg-accent hover:bg-accent/90 text-white"
+                                >
+                                    <CreditCard size={16} className="mr-2" />
+                                    再仮払いを行う
+                                </Button>
+                            </div>
                         </div>
                     )}
 
                     {/* キャンセル済み表示 */}
                     {contract.status === 'cancelled' && (
-                        <div className="bg-gray-100 p-4 rounded-lg border border-gray-300">
+                        <div className="bg-gray-100 p-4 rounded-lg border-l-4 border-gray-500">
                             <h4 className="font-bold text-gray-700 mb-2 flex items-center gap-2">
                                 <XCircle size={18} />
                                 この契約はキャンセルされました
                             </h4>
-                            {contract.cancelReason && (
-                                <p className="text-sm text-gray-600">理由: {contract.cancelReason}</p>
-                            )}
-                            {contract.cancelledAt && (
-                                <p className="text-sm text-gray-500 mt-1">
-                                    キャンセル日時: {contract.cancelledAt.toDate().toLocaleString('ja-JP')}
-                                </p>
-                            )}
+                            <div className="pl-7">
+                                {contract.cancelReason && (
+                                    <p className="text-sm text-gray-600">理由: {contract.cancelReason}</p>
+                                )}
+                                {contract.cancelledAt && (
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        キャンセル日時: {contract.cancelledAt.toDate().toLocaleString('ja-JP')}
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     )}
 
                     {/* 係争中表示 */}
                     {contract.status === 'disputed' && (
-                        <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-500">
                             <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2">
                                 <AlertTriangle size={18} />
                                 この契約は係争中です
                             </h4>
-                            <p className="text-sm text-red-800">
-                                運営が確認中です。解決までしばらくお待ちください。
-                            </p>
-                            {contract.noContactReportReason && (
-                                <p className="text-sm text-red-700 mt-2">
-                                    報告内容: {contract.noContactReportReason}
+                            <div className="pl-7">
+                                <p className="text-sm text-red-800">
+                                    運営が確認中です。解決までしばらくお待ちください。
                                 </p>
-                            )}
+                                {contract.noContactReportReason && (
+                                    <p className="text-sm text-red-700 mt-2">
+                                        報告内容: {contract.noContactReportReason}
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     )}
 
                     {/* キャンセル申請中の表示（相手からの申請） */}
                     {contract.cancelRequestedBy && contract.cancelRequestedBy !== user?.uid && contract.status !== 'cancelled' && (
-                        <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                        <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-500">
                             <h4 className="font-bold text-orange-900 mb-2 flex items-center gap-2">
                                 <AlertTriangle size={18} />
                                 ワーカーからキャンセル申請があります
                             </h4>
-                            <p className="text-sm text-orange-800 mb-2">
-                                理由: {contract.cancelReason || '理由なし'}
-                            </p>
-                            <p className="text-sm text-orange-700 mb-4">
-                                承認すると契約がキャンセルされ、仮決済済みの場合は全額返金されます。
-                            </p>
-                            <Button
-                                onClick={async () => {
-                                    if (!confirm("キャンセルを承認しますか？仮決済済みの場合は全額返金されます。")) return;
-                                    setIsProcessing(true);
-                                    try {
-                                        const token = await auth.currentUser?.getIdToken();
-                                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-                                        const res = await fetch(`${apiUrl}/api/contracts/cancel-approve`, {
-                                            method: "POST",
-                                            headers: {
-                                                "Content-Type": "application/json",
-                                                Authorization: `Bearer ${token}`,
-                                            },
-                                            body: JSON.stringify({ contractId: contract.id }),
-                                        });
-                                        const data = await res.json();
-                                        if (data.error) throw new Error(data.error);
-                                        alert("キャンセルを承認しました。");
-                                    } catch (error: any) {
-                                        alert(error.message || "エラーが発生しました");
-                                    } finally {
-                                        setIsProcessing(false);
-                                    }
-                                }}
-                                disabled={isProcessing}
-                                variant="danger"
-                            >
-                                <XCircle size={16} className="mr-2" />
-                                キャンセルを承認する
-                            </Button>
+                            <div className="pl-7">
+                                <p className="text-sm text-orange-800 mb-2">
+                                    理由: {contract.cancelReason || '理由なし'}
+                                </p>
+                                <p className="text-sm text-orange-700 mb-4">
+                                    承認すると契約がキャンセルされ、仮決済済みの場合は全額返金されます。
+                                </p>
+                                <Button
+                                    onClick={async () => {
+                                        if (!confirm("キャンセルを承認しますか？仮決済済みの場合は全額返金されます。")) return;
+                                        setIsProcessing(true);
+                                        try {
+                                            const token = await auth.currentUser?.getIdToken();
+                                            const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+                                            const res = await fetch(`${apiUrl}/api/contracts/cancel-approve`, {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type": "application/json",
+                                                    Authorization: `Bearer ${token}`,
+                                                },
+                                                body: JSON.stringify({ contractId: contract.id }),
+                                            });
+                                            const data = await res.json();
+                                            if (data.error) throw new Error(data.error);
+                                            alert("キャンセルを承認しました。");
+                                        } catch (error: any) {
+                                            alert(error.message || "エラーが発生しました");
+                                        } finally {
+                                            setIsProcessing(false);
+                                        }
+                                    }}
+                                    disabled={isProcessing}
+                                    variant="danger"
+                                >
+                                    <XCircle size={16} className="mr-2" />
+                                    キャンセルを承認する
+                                </Button>
+                            </div>
                         </div>
                     )}
 
                     {/* 自分のキャンセル申請中の表示 */}
                     {contract.cancelRequestedBy && contract.cancelRequestedBy === user?.uid && contract.status !== 'cancelled' && (
-                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
                             <h4 className="font-bold text-yellow-900 mb-2 flex items-center gap-2">
                                 <Clock size={18} />
                                 キャンセル申請中
                             </h4>
-                            <p className="text-sm text-yellow-800">
+                            <p className="text-sm text-yellow-800 pl-7">
                                 ワーカーの承認を待っています。承認されると契約がキャンセルされます。
                             </p>
                         </div>
@@ -636,115 +770,122 @@ export default function ClientContractDetailPage() {
                     {/* キャンセル申請ボタン（キャンセル可能なステータスの場合） */}
                     {['pending_signature', 'waiting_for_escrow', 'escrow', 'in_progress', 'submitted'].includes(contract.status) && 
                      !contract.cancelRequestedBy && (
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <h4 className="font-bold text-gray-700 mb-2">契約のキャンセル</h4>
-                            <p className="text-sm text-gray-600 mb-4">
-                                契約をキャンセルする場合は、下記ボタンからキャンセル申請を行ってください。
-                                ワーカーが承認すると契約がキャンセルされます。
-                                {(contract.status === 'escrow' || contract.status === 'in_progress' || contract.status === 'submitted') && (
-                                    <span className="block mt-1 text-orange-600">
-                                        ※仮決済済みのため、キャンセル時は全額返金されます。
-                                    </span>
-                                )}
-                                {contract.status === 'submitted' && (
-                                    <span className="block mt-1 text-red-600 font-medium">
-                                        ⚠️ 納品物を受け取った後のキャンセルです。ワーカーとよく話し合った上でキャンセルしてください。
-                                    </span>
-                                )}
-                            </p>
-                            <Button
-                                onClick={async () => {
-                                    const reason = prompt("キャンセル理由を入力してください（任意）:");
-                                    if (reason === null) return; // キャンセル
-                                    if (!confirm("キャンセル申請を送信しますか？")) return;
-                                    setIsProcessing(true);
-                                    try {
-                                        const token = await auth.currentUser?.getIdToken();
-                                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-                                        const res = await fetch(`${apiUrl}/api/contracts/cancel-request`, {
-                                            method: "POST",
-                                            headers: {
-                                                "Content-Type": "application/json",
-                                                Authorization: `Bearer ${token}`,
-                                            },
-                                            body: JSON.stringify({ contractId: contract.id, reason }),
-                                        });
-                                        const data = await res.json();
-                                        if (data.error) throw new Error(data.error);
-                                        alert("キャンセル申請を送信しました。ワーカーの承認をお待ちください。");
-                                    } catch (error: any) {
-                                        alert(error.message || "エラーが発生しました");
-                                    } finally {
-                                        setIsProcessing(false);
-                                    }
-                                }}
-                                disabled={isProcessing}
-                                variant="outline"
-                                className="text-red-600 border-red-300 hover:bg-red-50"
-                            >
-                                <XCircle size={16} className="mr-2" />
-                                キャンセル申請
-                            </Button>
+                        <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-gray-400">
+                            <h4 className="font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                <XCircle size={18} />
+                                契約のキャンセル
+                            </h4>
+                            <div className="pl-7">
+                                <p className="text-sm text-gray-600 mb-4">
+                                    契約をキャンセルする場合は、下記ボタンからキャンセル申請を行ってください。
+                                    ワーカーが承認すると契約がキャンセルされます。
+                                    {(contract.status === 'escrow' || contract.status === 'in_progress' || contract.status === 'submitted') && (
+                                        <span className="block mt-1 text-orange-600">
+                                            ※仮決済済みのため、キャンセル時は全額返金されます。
+                                        </span>
+                                    )}
+                                    {contract.status === 'submitted' && (
+                                        <span className="block mt-1 text-red-600 font-medium">
+                                            ⚠️ 納品物を受け取った後のキャンセルです。ワーカーとよく話し合った上でキャンセルしてください。
+                                        </span>
+                                    )}
+                                </p>
+                                <Button
+                                    onClick={async () => {
+                                        const reason = prompt("キャンセル理由を入力してください（任意）:");
+                                        if (reason === null) return; // キャンセル
+                                        if (!confirm("キャンセル申請を送信しますか？")) return;
+                                        setIsProcessing(true);
+                                        try {
+                                            const token = await auth.currentUser?.getIdToken();
+                                            const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+                                            const res = await fetch(`${apiUrl}/api/contracts/cancel-request`, {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type": "application/json",
+                                                    Authorization: `Bearer ${token}`,
+                                                },
+                                                body: JSON.stringify({ contractId: contract.id, reason }),
+                                            });
+                                            const data = await res.json();
+                                            if (data.error) throw new Error(data.error);
+                                            alert("キャンセル申請を送信しました。ワーカーの承認をお待ちください。");
+                                        } catch (error: any) {
+                                            alert(error.message || "エラーが発生しました");
+                                        } finally {
+                                            setIsProcessing(false);
+                                        }
+                                    }}
+                                    disabled={isProcessing}
+                                    variant="outline"
+                                    className="text-red-600 border-red-300 hover:bg-red-50"
+                                >
+                                    <XCircle size={16} className="mr-2" />
+                                    キャンセル申請
+                                </Button>
+                            </div>
                         </div>
                     )}
 
                     {/* 連絡不通報告ボタン（escrow/in_progress時のみ） */}
                     {['escrow', 'in_progress'].includes(contract.status) && !contract.noContactReportedAt && (
-                        <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-500">
                             <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2">
                                 <AlertTriangle size={18} />
                                 ワーカーと連絡が取れない場合
                             </h4>
-                            <p className="text-sm text-red-800 mb-4">
+                            <p className="text-sm text-red-800 mb-4 pl-7">
                                 7日以上ワーカーから連絡がない場合は、運営に報告できます。
                                 運営が確認後、強制キャンセル・返金の対応を行います。
                             </p>
-                            <Button
-                                onClick={async () => {
-                                    const reason = prompt("状況を詳しく教えてください（最後に連絡があった日時、送ったメッセージの内容など）:");
-                                    if (!reason) {
-                                        alert("報告内容を入力してください。");
-                                        return;
-                                    }
-                                    if (!confirm("連絡不通を運営に報告しますか？")) return;
-                                    setIsProcessing(true);
-                                    try {
-                                        const token = await auth.currentUser?.getIdToken();
-                                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-                                        const res = await fetch(`${apiUrl}/api/contracts/report-no-contact`, {
-                                            method: "POST",
-                                            headers: {
-                                                "Content-Type": "application/json",
-                                                Authorization: `Bearer ${token}`,
-                                            },
-                                            body: JSON.stringify({ contractId: contract.id, reason }),
-                                        });
-                                        const data = await res.json();
-                                        if (data.error) throw new Error(data.error);
-                                        alert("報告を送信しました。運営が確認後、対応いたします。");
-                                    } catch (error: any) {
-                                        alert(error.message || "エラーが発生しました");
-                                    } finally {
-                                        setIsProcessing(false);
-                                    }
-                                }}
-                                disabled={isProcessing}
-                                variant="danger"
-                            >
-                                <AlertTriangle size={16} className="mr-2" />
-                                連絡不通を報告する
-                            </Button>
+                            <div className="pl-7">
+                                <Button
+                                    onClick={async () => {
+                                        const reason = prompt("状況を詳しく教えてください（最後に連絡があった日時、送ったメッセージの内容など）:");
+                                        if (!reason) {
+                                            alert("報告内容を入力してください。");
+                                            return;
+                                        }
+                                        if (!confirm("連絡不通を運営に報告しますか？")) return;
+                                        setIsProcessing(true);
+                                        try {
+                                            const token = await auth.currentUser?.getIdToken();
+                                            const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+                                            const res = await fetch(`${apiUrl}/api/contracts/report-no-contact`, {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type": "application/json",
+                                                    Authorization: `Bearer ${token}`,
+                                                },
+                                                body: JSON.stringify({ contractId: contract.id, reason }),
+                                            });
+                                            const data = await res.json();
+                                            if (data.error) throw new Error(data.error);
+                                            alert("報告を送信しました。運営が確認後、対応いたします。");
+                                        } catch (error: any) {
+                                            alert(error.message || "エラーが発生しました");
+                                        } finally {
+                                            setIsProcessing(false);
+                                        }
+                                    }}
+                                    disabled={isProcessing}
+                                    variant="danger"
+                                >
+                                    <AlertTriangle size={16} className="mr-2" />
+                                    連絡不通を報告する
+                                </Button>
+                            </div>
                         </div>
                     )}
 
                     {/* 連絡不通報告済み表示 */}
                     {contract.noContactReportedAt && contract.status !== 'cancelled' && contract.status !== 'disputed' && (
-                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
                             <h4 className="font-bold text-yellow-900 mb-2 flex items-center gap-2">
                                 <Clock size={18} />
                                 連絡不通報告済み
                             </h4>
-                            <p className="text-sm text-yellow-800">
+                            <p className="text-sm text-yellow-800 pl-7">
                                 運営が確認中です。対応までしばらくお待ちください。
                             </p>
                         </div>

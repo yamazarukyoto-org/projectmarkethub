@@ -11,6 +11,214 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ArrowLeft, Clock, DollarSign, Calendar, Tag, Trash2, Paperclip, Download } from "lucide-react";
 
+// 案件添付ファイルのダウンロードコンポーネント（ダウンロード回数制限付き）
+function JobAttachmentDownload({ 
+    jobId, 
+    attachmentIndex, 
+    url, 
+    displayName, 
+    userId 
+}: { 
+    jobId: string; 
+    attachmentIndex: number; 
+    url: string; 
+    displayName: string; 
+    userId: string;
+}) {
+    const [downloadCount, setDownloadCount] = useState(0);
+    const [canDownload, setCanDownload] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const MAX_DOWNLOADS = 3;
+
+    useEffect(() => {
+        // 初期ダウンロード回数を取得
+        const fetchDownloadCount = async () => {
+            if (!userId) return;
+            try {
+                const response = await fetch(
+                    `/api/attachments/download?type=job&id=${jobId}&attachmentIndex=${attachmentIndex}&userId=${userId}`
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    setDownloadCount(data.downloadCount);
+                    setCanDownload(data.canDownload);
+                }
+            } catch (error) {
+                console.error("Failed to fetch download count:", error);
+            }
+        };
+        fetchDownloadCount();
+    }, [jobId, attachmentIndex, userId]);
+
+    const handleDownload = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        
+        if (!userId) {
+            alert("ダウンロードするにはログインが必要です。");
+            return;
+        }
+
+        if (!canDownload) {
+            alert("ダウンロード回数の上限（3回）に達しました。");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/attachments/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'job',
+                    id: jobId,
+                    attachmentIndex,
+                    userId,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setDownloadCount(data.downloadCount);
+                setCanDownload(data.downloadCount < MAX_DOWNLOADS);
+                // ダウンロードを実行
+                window.open(url, '_blank');
+            } else {
+                alert(data.error || "ダウンロードに失敗しました。");
+            }
+        } catch (error) {
+            console.error("Download error:", error);
+            alert("ダウンロード中にエラーが発生しました。");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <button
+            onClick={handleDownload}
+            disabled={isLoading || !canDownload}
+            className={`flex items-center justify-between w-full gap-2 p-2 rounded transition-colors text-sm ${
+                canDownload 
+                    ? 'bg-gray-50 hover:bg-gray-100 text-primary cursor-pointer' 
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+        >
+            <div className="flex items-center gap-2">
+                <Download size={14} />
+                <span className="truncate">{displayName}</span>
+            </div>
+            <span className="text-xs text-gray-500 whitespace-nowrap">
+                {downloadCount}/{MAX_DOWNLOADS}回
+            </span>
+        </button>
+    );
+}
+
+// 提案添付ファイルのダウンロードコンポーネント（ダウンロード回数制限付き）
+function ProposalAttachmentDownload({ 
+    proposalId, 
+    attachmentIndex, 
+    url, 
+    displayName, 
+    userId 
+}: { 
+    proposalId: string; 
+    attachmentIndex: number; 
+    url: string; 
+    displayName: string; 
+    userId: string;
+}) {
+    const [downloadCount, setDownloadCount] = useState(0);
+    const [canDownload, setCanDownload] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const MAX_DOWNLOADS = 3;
+
+    useEffect(() => {
+        // 初期ダウンロード回数を取得
+        const fetchDownloadCount = async () => {
+            if (!userId) return;
+            try {
+                const response = await fetch(
+                    `/api/attachments/download?type=proposal&id=${proposalId}&attachmentIndex=${attachmentIndex}&userId=${userId}`
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    setDownloadCount(data.downloadCount);
+                    setCanDownload(data.canDownload);
+                }
+            } catch (error) {
+                console.error("Failed to fetch download count:", error);
+            }
+        };
+        fetchDownloadCount();
+    }, [proposalId, attachmentIndex, userId]);
+
+    const handleDownload = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        
+        if (!userId) {
+            alert("ダウンロードするにはログインが必要です。");
+            return;
+        }
+
+        if (!canDownload) {
+            alert("ダウンロード回数の上限（3回）に達しました。");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/attachments/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'proposal',
+                    id: proposalId,
+                    attachmentIndex,
+                    userId,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setDownloadCount(data.downloadCount);
+                setCanDownload(data.downloadCount < MAX_DOWNLOADS);
+                // ダウンロードを実行
+                window.open(url, '_blank');
+            } else {
+                alert(data.error || "ダウンロードに失敗しました。");
+            }
+        } catch (error) {
+            console.error("Download error:", error);
+            alert("ダウンロード中にエラーが発生しました。");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <button
+            onClick={handleDownload}
+            disabled={isLoading || !canDownload}
+            className={`flex items-center justify-between w-full gap-1 p-1.5 rounded transition-colors text-xs ${
+                canDownload 
+                    ? 'bg-gray-50 hover:bg-gray-100 text-primary cursor-pointer' 
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+        >
+            <div className="flex items-center gap-1">
+                <Download size={12} />
+                <span className="truncate">{displayName}</span>
+            </div>
+            <span className="text-xs text-gray-500 whitespace-nowrap">
+                {downloadCount}/{MAX_DOWNLOADS}
+            </span>
+        </button>
+    );
+}
+
 export default function ClientJobDetailPage() {
     const params = useParams();
     const router = useRouter();
@@ -142,6 +350,7 @@ export default function ClientJobDetailPage() {
                                     <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
                                         <Paperclip size={16} /> 添付ファイル
                                     </h3>
+                                    <p className="text-xs text-gray-500 mb-2">注意）各ファイルのダウンロードは3回までです。</p>
                                     <div className="space-y-2">
                                         {job.attachments.map((att, index) => {
                                             // attが文字列（URL）の場合と、オブジェクト{name, url}の場合の両方に対応
@@ -151,8 +360,6 @@ export default function ClientJobDetailPage() {
                                             // ファイル名が空の場合、URLからファイル名を抽出
                                             const getFileNameFromUrl = (url: string, fallbackIndex: number) => {
                                                 try {
-                                                    console.log('Processing URL:', url);
-                                                    
                                                     // Firebase Storage URL形式: 
                                                     // https://firebasestorage.googleapis.com/v0/b/bucket/o/job-attachments%2F1234567890_filename.pdf?alt=media&token=xxx
                                                     
@@ -165,21 +372,16 @@ export default function ClientJobDetailPage() {
                                                         }
                                                     }
                                                     
-                                                    console.log('Encoded path:', encodedPath);
-                                                    
                                                     if (!encodedPath) {
-                                                        console.log('No encoded path found, returning fallback');
                                                         return `ファイル${fallbackIndex + 1}`;
                                                     }
                                                     
                                                     // URLデコード（%2Fを/に変換など）
                                                     const decodedPath = decodeURIComponent(encodedPath);
-                                                    console.log('Decoded path:', decodedPath);
                                                     
                                                     // パスの最後の部分を取得
                                                     const parts = decodedPath.split('/');
                                                     let lastPart = parts[parts.length - 1];
-                                                    console.log('Last part:', lastPart);
                                                     
                                                     if (!lastPart) {
                                                         return `ファイル${fallbackIndex + 1}`;
@@ -190,11 +392,9 @@ export default function ClientJobDetailPage() {
                                                     if (lastPart.includes('_')) {
                                                         const underscoreIndex = lastPart.indexOf('_');
                                                         const beforeUnderscore = lastPart.substring(0, underscoreIndex);
-                                                        console.log('Before underscore:', beforeUnderscore);
                                                         // 最初の部分が13桁程度の数字（タイムスタンプ）の場合のみスキップ
                                                         if (/^\d{10,15}$/.test(beforeUnderscore)) {
                                                             const fileName = lastPart.substring(underscoreIndex + 1);
-                                                            console.log('Extracted filename:', fileName);
                                                             return fileName || `ファイル${fallbackIndex + 1}`;
                                                         }
                                                     }
@@ -210,17 +410,14 @@ export default function ClientJobDetailPage() {
                                                 : getFileNameFromUrl(attUrl, index);
                                             
                                             return (
-                                                <a 
-                                                    key={index} 
-                                                    href={attUrl} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer"
-                                                    download={displayName}
-                                                    className="flex items-center gap-2 p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors text-sm text-primary"
-                                                >
-                                                    <Download size={14} />
-                                                    <span className="truncate">{displayName}</span>
-                                                </a>
+                                                <JobAttachmentDownload
+                                                    key={index}
+                                                    jobId={job.id}
+                                                    attachmentIndex={index}
+                                                    url={attUrl}
+                                                    displayName={displayName}
+                                                    userId={user?.uid || ''}
+                                                />
                                             );
                                         })}
                                     </div>
@@ -270,7 +467,7 @@ export default function ClientJobDetailPage() {
                                         {proposal.attachments && proposal.attachments.length > 0 && (
                                             <div className="mb-3">
                                                 <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                                                    <Paperclip size={12} /> 添付ファイル
+                                                    <Paperclip size={12} /> 添付ファイル（各3回までDL可）
                                                 </p>
                                                 <div className="space-y-1">
                                                     {proposal.attachments.map((att, index) => {
@@ -293,17 +490,14 @@ export default function ClientJobDetailPage() {
                                                             }
                                                         };
                                                         return (
-                                                            <a 
-                                                                key={index} 
-                                                                href={att.url} 
-                                                                target="_blank" 
-                                                                rel="noopener noreferrer"
-                                                                download={getFileName(att)}
-                                                                className="flex items-center gap-1 p-1.5 bg-gray-50 rounded hover:bg-gray-100 transition-colors text-xs text-primary"
-                                                            >
-                                                                <Download size={12} />
-                                                                <span className="truncate">{getFileName(att)}</span>
-                                                            </a>
+                                                            <ProposalAttachmentDownload
+                                                                key={index}
+                                                                proposalId={proposal.id}
+                                                                attachmentIndex={index}
+                                                                url={att.url}
+                                                                displayName={getFileName(att)}
+                                                                userId={user?.uid || ''}
+                                                            />
                                                         );
                                                     })}
                                                 </div>

@@ -81,57 +81,63 @@ export const Header = () => {
         { href: "/client/dashboard", label: "ダッシュボード" },
         { href: "/client/jobs/new", label: "仕事を依頼する" },
         { href: "/client/workers", label: "ワーカーを探す" },
+        { href: "/client/jobs", label: "案件管理" },
         { href: "/client/contracts", label: "契約管理" },
     ];
 
     const workerLinks = [
         { href: "/worker/dashboard", label: "ダッシュボード" },
         { href: "/worker/search", label: "仕事を探す" },
+        { href: "/worker/applications", label: "応募管理" },
         { href: "/worker/contracts", label: "契約管理" },
     ];
 
     const links = isClient ? clientLinks : workerLinks;
 
     return (
-        <header className={clsx("sticky top-0 z-50 bg-white shadow-sm border-t-4", borderColor)}>
+        <header className={clsx("sticky top-0 z-50 bg-white shadow-md border-t-4", borderColor)}>
             <div className="container mx-auto px-4">
                 <div className="flex h-16 items-center justify-between">
                     {/* Logo */}
-                    <div className="flex items-center gap-8">
-                        <Link href="/" className="text-xl font-bold text-secondary">
+                    <div className="flex items-center gap-2 md:gap-8">
+                        <Link href="/" className="text-sm md:text-xl font-bold text-secondary whitespace-nowrap">
                             Project Market Hub
                         </Link>
 
-                        {/* Desktop Navigation */}
-                        <nav className="hidden md:flex items-center gap-6">
-                            {links.map((link) => (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className={clsx(
-                                        "text-sm font-medium transition-colors hover:text-primary whitespace-nowrap",
-                                        pathname === link.href ? "text-primary" : "text-gray-600"
-                                    )}
-                                >
-                                    {link.label}
-                                </Link>
-                            ))}
-                        </nav>
+                        {/* Desktop Navigation - ログイン時のみ表示 */}
+                        {currentUser && (
+                            <nav className="hidden md:flex items-center gap-6">
+                                {links.map((link) => (
+                                    <Link
+                                        key={link.href}
+                                        href={link.href}
+                                        className={clsx(
+                                            "text-sm font-medium transition-colors hover:text-primary whitespace-nowrap",
+                                            pathname === link.href ? "text-primary" : "text-gray-600"
+                                        )}
+                                    >
+                                        {link.label}
+                                    </Link>
+                                ))}
+                            </nav>
+                        )}
                     </div>
 
                     {/* Right Side Actions */}
                     <div className="flex items-center gap-4">
-                        {/* Mode Switcher */}
-                        <div className="hidden md:block">
-                            <select
-                                value={mode}
-                                onChange={handleModeChange}
-                                className="text-sm border-gray-300 rounded-md focus:ring-primary focus:border-primary cursor-pointer"
-                            >
-                                <option value="client">クライアントモード</option>
-                                <option value="worker">ワーカーモード</option>
-                            </select>
-                        </div>
+                        {/* Mode Switcher - ログイン時のみ表示 */}
+                        {currentUser && (
+                            <div className="hidden md:block">
+                                <select
+                                    value={mode}
+                                    onChange={handleModeChange}
+                                    className="text-sm border-gray-300 rounded-md focus:ring-primary focus:border-primary cursor-pointer"
+                                >
+                                    <option value="client">クライアントモード</option>
+                                    <option value="worker">ワーカーモード</option>
+                                </select>
+                            </div>
+                        )}
 
                         {loading ? (
                             <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
@@ -201,19 +207,21 @@ export const Header = () => {
                             </div>
                         )}
 
-                        {/* Mobile Menu Button */}
-                        <button
-                            className="md:hidden p-2 text-gray-500"
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        >
-                            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                        </button>
+                        {/* Mobile Menu Button - ログイン時のみ表示 */}
+                        {currentUser && (
+                            <button
+                                className="md:hidden p-2 text-gray-500"
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            >
+                                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Mobile Menu */}
-            {isMenuOpen && (
+            {/* Mobile Menu - ログイン時のみ表示 */}
+            {isMenuOpen && currentUser && (
                 <div className="md:hidden border-t border-gray-100 bg-white">
                     <div className="p-4 space-y-4">
                         <div className="flex items-center justify-between">
@@ -233,50 +241,28 @@ export const Header = () => {
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className="block py-2 text-sm font-medium text-gray-700 hover:text-primary"
+                                    className="block py-3 text-base font-medium text-gray-700 hover:text-primary border-b border-gray-50 last:border-0"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
                                     {link.label}
                                 </Link>
                             ))}
-                            {currentUser && (
-                                <Link
-                                    href="/messages"
-                                    className="block py-2 text-sm font-medium text-gray-700 hover:text-primary flex items-center gap-2"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    <MessageSquare size={16} /> メッセージ
-                                </Link>
-                            )}
-                            {currentUser && (
-                                <button
-                                    onClick={() => {
-                                        handleLogout();
-                                        setIsMenuOpen(false);
-                                    }}
-                                    className="block w-full text-left py-2 text-sm font-medium text-danger hover:bg-red-50"
-                                >
-                                    ログアウト
-                                </button>
-                            )}
-                            {!currentUser && (
-                                <>
-                                    <Link
-                                        href="/login"
-                                        className="block py-2 text-sm font-medium text-gray-700 hover:text-primary"
-                                        onClick={() => setIsMenuOpen(false)}
-                                    >
-                                        ログイン
-                                    </Link>
-                                    <Link
-                                        href="/register"
-                                        className="block py-2 text-sm font-medium text-primary hover:text-primary-hover"
-                                        onClick={() => setIsMenuOpen(false)}
-                                    >
-                                        会員登録
-                                    </Link>
-                                </>
-                            )}
+                            <Link
+                                href="/messages"
+                                className="block py-2 text-sm font-medium text-gray-700 hover:text-primary flex items-center gap-2"
+                                onClick={() => setIsMenuOpen(false)}
+                            >
+                                <MessageSquare size={16} /> メッセージ
+                            </Link>
+                            <button
+                                onClick={() => {
+                                    handleLogout();
+                                    setIsMenuOpen(false);
+                                }}
+                                className="block w-full text-left py-2 text-sm font-medium text-danger hover:bg-red-50"
+                            >
+                                ログアウト
+                            </button>
                         </nav>
                     </div>
                 </div>

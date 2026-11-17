@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { getUser } from "@/lib/db";
 import { Building2, Globe, MapPin, Phone, Save, User } from "lucide-react";
+import ProfileImageEditor from "@/components/features/profile/ProfileImageEditor";
+import { User as UserType } from "@/types";
 
 interface ClientProfile {
     displayName: string;
@@ -21,6 +24,7 @@ export default function ClientProfilePage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+    const [userData, setUserData] = useState<UserType | null>(null);
     const [profile, setProfile] = useState<ClientProfile>({
         displayName: "",
         companyName: "",
@@ -31,35 +35,39 @@ export default function ClientProfilePage() {
         industry: "",
     });
 
-    useEffect(() => {
-        const fetchProfile = async () => {
-            if (!firebaseUser) return;
+    const fetchProfile = useCallback(async () => {
+        if (!firebaseUser) return;
 
-            try {
-                const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-                if (userDoc.exists()) {
-                    const data = userDoc.data();
-                    // clientProfileオブジェクトから読み取る（フォールバックとしてフラット構造も対応）
-                    const clientProfile = data.clientProfile || {};
-                    setProfile({
-                        displayName: data.displayName || "",
-                        companyName: clientProfile.companyName || data.companyName || "",
-                        website: clientProfile.website || data.companyWebsite || "",
-                        companyAddress: clientProfile.companyAddress || data.companyAddress || "",
-                        companyPhone: clientProfile.companyPhone || data.companyPhone || "",
-                        description: clientProfile.description || data.companyDescription || "",
-                        industry: clientProfile.industry || data.industry || "",
-                    });
-                }
-            } catch (error) {
-                console.error("Error fetching profile:", error);
-            } finally {
-                setLoading(false);
+        try {
+            const user = await getUser(firebaseUser.uid);
+            if (user) {
+                setUserData(user);
+                // clientProfileオブジェクトから読み取る（フォールバックとしてフラット構造も対応）
+                const clientProfile = user.clientProfile || {};
+                setProfile({
+                    displayName: user.displayName || "",
+                    companyName: clientProfile.companyName || "",
+                    website: clientProfile.website || "",
+                    companyAddress: (clientProfile as any).companyAddress || "",
+                    companyPhone: (clientProfile as any).companyPhone || "",
+                    description: clientProfile.description || "",
+                    industry: (clientProfile as any).industry || "",
+                });
             }
-        };
-
-        fetchProfile();
+        } catch (error) {
+            console.error("Error fetching profile:", error);
+        } finally {
+            setLoading(false);
+        }
     }, [firebaseUser]);
+
+    useEffect(() => {
+        fetchProfile();
+    }, [fetchProfile]);
+
+    const handleImageUpdate = useCallback(() => {
+        fetchProfile();
+    }, [fetchProfile]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -116,6 +124,11 @@ export default function ClientProfilePage() {
             )}
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                {/* プロフィール画像エディター */}
+                {userData && (
+                    <ProfileImageEditor user={userData} onUpdate={handleImageUpdate} />
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">

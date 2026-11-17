@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   title: "Project Market Hub",
   description: "信頼できるプロフェッショナルと出会えるクラウドソーシングプラットフォーム",
   icons: {
-    icon: "/bee-favicon.svg",
+    icon: "/favicon.png",
   },
 };
 

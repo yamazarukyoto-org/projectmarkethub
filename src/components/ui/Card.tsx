@@ -9,7 +9,7 @@ function cn(...inputs: ClassValue[]) {
 export const Card = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
     return (
         <div
-            className={cn("rounded-lg border border-gray-200 bg-white shadow-sm", className)}
+            className={cn("rounded-lg border border-gray-100 bg-white shadow-md", className)}
             {...props}
         >
             {children}

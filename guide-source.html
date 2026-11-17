@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Market Hub 公式利用ガイド</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563EB', // Blue-600 (from globals.css)
+                        'primary-hover': '#1D4ED8', // Blue-700
+                        secondary: '#0F2350', // Dark Navy
+                        accent: '#FF9F1C', // Orange
+                        danger: '#EF4444', // Red-500
+                        success: '#10B981',
+                        surface: '#FFFFFF',
+                        background: '#F3F4F6', // Gray-100
+                        slate: '#0F2350', // Matching secondary for text
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+                        'floating': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            color: #0F2350;
+            /* foreground */
+        }
+
+        .page {
+            width: 210mm;
+            height: 297mm;
+            padding: 15mm;
+            position: relative;
+            background: white;
+            overflow: hidden;
+            page-break-after: always;
+            break-after: page;
+        }
+
+        .page-number {
+            position: absolute;
+            bottom: 10mm;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 9pt;
+            color: #94a3b8;
+        }
+
+        @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
+
+            body {
+                margin: 0;
+            }
+        }
+
+        /* Faithful UI Mockup Styles */
+        .mock-window {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            background: white;
+        }
+
+        .mock-header {
+            background: #f8fafc;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .mock-dot {
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 9999px;
+        }
+
+        /* Button Component Reproduction */
+        .mock-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            /* rounded-md */
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .mock-btn-primary {
+            background-color: #2563EB;
+            color: white;
+        }
+
+        .mock-btn-secondary {
+            background-color: #0F2350;
+            color: white;
+        }
+
+        .mock-btn-outline {
+            background-color: transparent;
+            border: 1px solid #e5e7eb;
+            color: #374151;
+        }
+
+        .mock-btn-danger {
+            background-color: #EF4444;
+            color: white;
+        }
+
+        /* Input Component Reproduction */
+        .mock-input {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            /* border-gray-300 */
+            border-radius: 0.5rem;
+            /* rounded-lg (from PostJobPage) */
+            padding: 0.5rem 0.75rem;
+            /* px-3 py-2 */
+            font-size: 0.875rem;
+            background-color: white;
+        }
+
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 9999px;
+            background: #2563EB;
+            color: white;
+            font-weight: 900;
+            font-size: 1.25rem;
+            margin-right: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+
+    <!-- PAGE 1: 表紙 -->
+    <div class="page flex flex-col justify-between relative bg-slate-50">
+        <div class="absolute top-0 right-0 w-2/3 h-full bg-blue-50/50 -skew-x-12 transform translate-x-20 z-0"></div>
+        <div class="absolute bottom-0 left-0 w-1/3 h-1/2 bg-blue-100/30 rounded-tr-full z-0"></div>
+
+        <div class="relative z-10 pt-24 pl-12">
+            <div class="flex items-center gap-4 mb-10">
+                <div
+                    class="w-16 h-16 bg-primary rounded-xl flex items-center justify-center text-white shadow-floating">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <span class="text-3xl font-bold text-secondary tracking-tight">Project Market Hub</span>
+            </div>
+
+            <h1 class="text-6xl font-black text-secondary leading-tight mb-8">
+                公式利用ガイド<br>
+                <span class="text-primary text-4xl block mt-4 font-bold">完全マニュアル</span>
+            </h1>
+
+            <p class="text-xl text-slate-600 font-medium max-w-md leading-relaxed">
+                登録から契約、納品、支払いまで。<br>
+                画面イメージ付きで徹底解説。<br>
+                初めての方もこれ一冊で安心です。
+            </p>
+        </div>
+
+        <div class="relative z-10 pb-12 pr-12 text-right">
+            <p class="text-slate-500 font-medium">Ver 2.1 (2025)</p>
+            <p class="text-primary font-bold text-lg">pj-markethub.com</p>
+        </div>
+    </div>
+
+    <!-- PAGE 2: 目次 -->
+    <div class="page">
+        <h2 class="text-3xl font-bold text-secondary border-b-4 border-primary pb-4 mb-10">目次</h2>
+
+        <div class="grid grid-cols-1 gap-6 text-slate-700">
+            <div>
+                <h3 class="font-bold text-lg mb-2 text-primary flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    はじめに
+                </h3>
+                <ul class="space-y-1 pl-2 text-sm">
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>1.
+                            サービス全体の流れ（ダイジェスト）</span><span class="font-bold text-gray-400">P.3</span></li>
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>2.
+                            安心・安全への取り組み</span><span class="font-bold text-gray-400">P.4</span></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="font-bold text-lg mb-2 text-secondary flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                        </path>
+                    </svg>
+                    【クライアント様向け】 発注ガイド
+                </h3>
+                <ul class="space-y-1 pl-2 text-sm">
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>STEP 1:
+                            仕事を依頼する（詳細入力ガイド）</span><span class="font-bold text-gray-400">P.6</span></li>
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>STEP 2:
+                            ワーカー選定 & スカウト</span><span class="font-bold text-gray-400">P.7</span></li>
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>STEP 3:
+                            契約締結 & 仮払い（エスクロー）</span><span class="font-bold text-gray-400">P.8</span></li>
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>STEP 4:
+                            業務管理 & コミュニケーション</span><span class="font-bold text-gray-400">P.9</span></li>
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>STEP 5:
+                            納品確認 & 検収完了</span><span class="font-bold text-gray-400">P.10</span></li>
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>STEP 6:
+                            評価 & 領収書発行</span><span class="font-bold text-gray-400">P.11</span></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="font-bold text-lg mb-2 text-secondary flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    【ワーカー様向け】 受注ガイド
+                </h3>
+                <ul class="space-y-1 pl-2 text-sm">
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>STEP 0:
+                            アカウント準備（Stripe連携・本人確認）</span><span class="font-bold text-gray-400">P.13</span></li>
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>STEP 1:
+                            案件検索 & 応募（提案のコツ）</span><span class="font-bold text-gray-400">P.14</span></li>
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>STEP 2:
+                            契約合意 & 業務開始のタイミング</span><span class="font-bold text-gray-400">P.15</span></li>
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>STEP 3:
+                            納品報告 & ファイル提出</span><span class="font-bold text-gray-400">P.16</span></li>
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>STEP 4:
+                            報酬受取 & 出金申請手順</span><span class="font-bold text-gray-400">P.17</span></li>
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>便利機能:
+                            支払調書ダウンロード & CSV出力</span><span class="font-bold text-gray-400">P.18</span></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="font-bold text-lg mb-2 text-gray-600 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    その他・サポート
+                </h3>
+                <ul class="space-y-1 pl-2 text-sm">
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100">
+                        <span>禁止事項・ルール詳細</span><span class="font-bold text-gray-400">P.19</span>
+                    </li>
+                    <li class="flex justify-between p-1 hover:bg-gray-50 rounded border-b border-gray-100"><span>よくある質問
+                            (FAQ)</span><span class="font-bold text-gray-400">P.20</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="page-number">2</div>
+    </div>
+
+    <!-- PAGE 3: ダイジェストフロー -->
+    <div class="page">
+        <div class="border-b-4 border-primary pb-2 mb-4 flex justify-between items-end">
+            <h2 class="text-3xl font-bold text-secondary">1. サービス全体の流れ</h2>
+        </div>
+
+        <div class="space-y-4">
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <h3 class="font-bold text-primary mb-1 text-base">Project Market Hubとは？</h3>
+                <p class="text-slate-700 text-xs">
+                    仕事を依頼したい「クライアント」と、仕事をしたい「ワーカー」をオンラインで安全に繋ぐプラットフォームです。<br>
+                    契約から決済、納品までをシステム上で完結できます。
+                </p>
+            </div>
+
+            <!-- フロー図 -->
+            <div class="relative mt-2 px-2">
+                <div class="absolute left-8 top-2 bottom-2 w-0.5 bg-gray-200"></div>
+
+                <!-- Step 1 -->
+                <div class="flex gap-4 mb-3 relative">
+                    <div
+                        class="w-10 h-10 bg-white border-4 border-primary rounded-full flex items-center justify-center shrink-0 z-10 shadow-md">
+                        <span class="text-base font-bold text-primary">01</span>
+                    </div>
+                    <div class="flex-1 bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                        <h4 class="font-bold text-base mb-2 text-secondary">マッチング（依頼・応募）</h4>
+                        <div class="flex gap-2 text-[10px] text-gray-600">
+                            <div class="flex-1 bg-gray-50 p-2 rounded border border-gray-100">
+                                <span class="font-bold block text-primary mb-0.5 flex items-center gap-1"><svg
+                                        class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                                        </path>
+                                    </svg>クライアント</span>
+                                案件を掲載し、ワーカーを募集します。
+                            </div>
+                            <div class="flex-1 bg-gray-50 p-2 rounded border border-gray-100">
+                                <span class="font-bold block text-secondary mb-0.5 flex items-center gap-1"><svg
+                                        class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                        </path>
+                                    </svg>ワーカー</span>
+                                案件を探し、提案（応募）を送ります。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="flex gap-4 mb-3 relative">
+                    <div
+                        class="w-10 h-10 bg-white border-4 border-accent rounded-full flex items-center justify-center shrink-0 z-10 shadow-md">
+                        <span class="text-base font-bold text-accent">02</span>
+                    </div>
+                    <div class="flex-1 bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                        <h4 class="font-bold text-base mb-2 text-secondary">契約・仮払い <span
+                                class="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded ml-1">重要</span></h4>
+                        <p class="text-[10px] text-gray-600 mb-2">
+                            条件が合意したら契約を締結します。クライアントは先に仮払い（決済予約）を行います。
+                        </p>
+                        <div
+                            class="bg-amber-50 p-2 rounded text-[10px] text-amber-900 border border-amber-200 flex gap-2 items-start">
+                            <svg class="w-4 h-4 text-accent shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div>
+                                <strong>エスクロー方式:</strong> 報酬は運営が一時預かりします。<br>これにより「払ったのに納品されない」「働いたのに払われない」を防ぎます。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="flex gap-4 mb-3 relative">
+                    <div
+                        class="w-10 h-10 bg-white border-4 border-indigo-400 rounded-full flex items-center justify-center shrink-0 z-10 shadow-md">
+                        <span class="text-base font-bold text-indigo-400">03</span>
+                    </div>
+                    <div class="flex-1 bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                        <h4 class="font-bold text-base mb-2 text-secondary">業務実施・納品</h4>
+                        <p class="text-[10px] text-gray-600">
+                            ワーカーは業務を行い、システム上で成果物を納品します。<br>
+                            メッセージ機能で細かく連絡を取り合いましょう。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="flex gap-4 relative">
+                    <div
+                        class="w-10 h-10 bg-white border-4 border-success rounded-full flex items-center justify-center shrink-0 z-10 shadow-md">
+                        <span class="text-base font-bold text-success">04</span>
+                    </div>
+                    <div class="flex-1 bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                        <h4 class="font-bold text-base mb-2 text-secondary">検収・支払い完了</h4>
+                        <p class="text-[10px] text-gray-600 mb-2">
+                            クライアントが納品物を確認し「検収」すると、運営からワーカーへ報酬が支払われます。
+                        </p>
+                        <div class="flex gap-1 text-[10px] font-medium">
+                            <span
+                                class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full border border-gray-200">相互評価</span>
+                            <span
+                                class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full border border-gray-200">領収書発行</span>
+                            <span
+                                class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full border border-gray-200">出金申請</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-number">3</div>
+    </div>
+
+    <!-- PAGE 4: 安心・安全の取り組み -->
+    <div class="page">
+        <div class="border-b-4 border-primary pb-4 mb-8 flex justify-between items-end">
+            <h2 class="text-3xl font-bold text-secondary">2. 安心・安全への取り組み</h2>
+        </div>
+
+        <div class="grid grid-cols-1 gap-8">
+            <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-card relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -mr-10 -mt-10"></div>
+                <h3 class="text-2xl font-bold text-secondary mb-4 flex items-center relative z-10">
+                    <span class="bg-[#635BFF] text-white px-3 py-1 rounded mr-3 text-sm font-bold">Stripe</span>
+                    世界最高水準の決済セキュリティ
+                </h3>
+                <p class="text-slate-600 mb-6 leading-relaxed relative z-10">
+                    決済システムには、Google、Amazon、Zoomなども導入している「Stripe」を採用しています。<br>
+                    クレジットカード情報はStripeが厳重に管理し、当サービスサーバーには一切保存されません。
+                </p>
+                <div class="flex gap-4 relative z-10">
+                    <span
+                        class="text-sm bg-gray-100 px-4 py-2 rounded-lg font-bold text-gray-600 border border-gray-200 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        PCI DSS Level 1 準拠
+                    </span>
+                    <span
+                        class="text-sm bg-gray-100 px-4 py-2 rounded-lg font-bold text-gray-600 border border-gray-200 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        3Dセキュア対応
+                    </span>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-card relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-green-50 rounded-bl-full -mr-10 -mt-10"></div>
+                <h3 class="text-2xl font-bold text-secondary mb-4 flex items-center relative z-10">
+                    <span
+                        class="bg-success text-white w-10 h-10 rounded-full flex items-center justify-center mr-3 shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </span>
+                    本人確認 (eKYC) の徹底
+                </h3>
+                <p class="text-slate-600 mb-6 leading-relaxed relative z-10">
+                    ワーカー様には、報酬受け取り前にStripeによる厳格な本人確認（身分証提出）を義務付けています。<br>
+                    本人確認が完了したユーザーには「認証バッジ」が付与され、信頼性を可視化しています。
+                </p>
+                <div
+                    class="p-4 bg-white rounded-lg border border-green-200 flex items-center gap-4 w-fit shadow-sm relative z-10">
+                    <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-400">
+                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-base font-bold text-gray-800 flex items-center gap-2">
+                            ユーザー名
+                            <span class="text-success bg-green-50 rounded-full p-0.5"><svg class="w-4 h-4"
+                                    fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd" />
+                                </svg></span>
+                        </div>
+                        <div
+                            class="text-xs text-green-700 font-bold bg-green-100 px-2 py-0.5 rounded-full inline-block mt-1">
+                            本人確認済み</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-number">4</div>
+    </div>
+
+    <!-- PAGE 5: クライアント編トップ -->
+    <div class="page flex flex-col justify-center items-center bg-secondary text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary to-secondary opacity-90"></div>
+        <div class="relative z-10 text-center">
+            <span
+                class="inline-block py-2 px-6 border border-white/30 rounded-full text-base font-bold tracking-wider mb-6 bg-white/10 backdrop-blur-sm">CLIENT
+                GUIDE</span>
+            <h2 class="text-6xl font-black mb-8 leading-tight drop-shadow-lg">クライアント様向け<br>発注ガイド</h2>
+            <p class="text-2xl text-blue-100 max-w-2xl mx-auto leading-relaxed font-light">
+                良い人材と出会い、<br>スムーズにプロジェクトを進めるための<br>詳細マニュアルです。
+            </p>
+        </div>
+        <div class="page-number">5</div>
+    </div>
+
+    <!-- PAGE 6: STEP 1 仕事を依頼する -->
+    <div class="page">
+        <div class="flex items-center mb-8">
+            <span class="step-badge">1</span>
+            <h2 class="text-2xl font-bold text-secondary">仕事を依頼する（募集開始）</h2>
+        </div>
+
+        <p class="mb-6 text-slate-600">
+            ダッシュボードの「新しい仕事を依頼」ボタンから作成します。各項目の書き方を詳しく解説します。
+        </p>
+
+        <div class="mock-window">
+            <div class="mock-header">
+                <div class="flex gap-1.5">
+                    <div class="mock-dot bg-[#FF5F57]"></div>
+                    <div class="mock-dot bg-[#FFBD2E]"></div>
+                    <div class="mock-dot bg-[#28C93F]"></div>
+                </div>
+                <span class="text-xs text-gray-500 ml-4 font-medium">仕事を依頼する - 入力画面</span>
+            </div>
+            <div class="p-6 space-y-5 bg-gray-50/50">
+                <!-- タイトル -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">タイトル <span
+                            class="text-danger">*</span></label>
+                    <div class="mock-input text-gray-400">例: Reactを使ったWebアプリ開発</div>
+                </div>
+
+                <!-- 詳細 -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">詳細 <span
+                            class="text-danger">*</span></label>
+                    <div class="mock-input h-32 text-gray-400">
+                        依頼内容の詳細を入力してください
+                    </div>
+                </div>
+
+                <!-- 添付ファイル -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">添付資料</label>
+                    <div
+                        class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-white hover:border-primary transition-colors cursor-pointer group">
+                        <svg class="w-8 h-8 mx-auto text-gray-400 group-hover:text-primary mb-2" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                            </path>
+                        </svg>
+                        <p class="text-sm text-gray-500 group-hover:text-primary">クリックしてファイルを選択するか、ここにドラッグ＆ドロップしてください
+                        </p>
+                    </div>
+                    <div class="p-2 mt-2 rounded-lg text-xs text-gray-500">
+                        注意）添付ファイルは最大100MBまでアップロード可能です。各ファイルのダウンロードは3回までです。100MBを超える場合は、外部ファイル共有サービス（Google
+                        Drive、Dropbox等）のURLを詳細欄に記載してください。
+                    </div>
+                </div>
+
+                <!-- 予算・期限 -->
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">予算 (税込) <span
+                                class="text-danger">*</span></label>
+                        <div class="relative">
+                            <div class="mock-input pr-8">55000</div>
+                            <span class="absolute right-3 top-2.5 text-gray-500 text-sm font-bold">円</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">※ 税込金額を入力してください。消費税10%が含まれます。</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">期限 <span
+                                class="text-danger">*</span></label>
+                        <div class="mock-input bg-white"></div>
+                    </div>
+                </div>
+
+                <!-- タグ -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">タグ (カンマ区切り)</label>
+                    <div class="mock-input text-gray-400">React, TypeScript, Firebase</div>
+                </div>
+            </div>
+            <div class="p-6 bg-white border-t flex justify-end gap-4">
+                <div class="mock-btn text-gray-500 hover:bg-gray-100">キャンセル</div>
+                <div class="mock-btn mock-btn-primary shadow-md">依頼を投稿する</div>
+            </div>
+        </div>
+        <div class="page-number">6</div>
+    </div>
+
+    <!-- PAGE 7: STEP 2 ワーカー選定 -->
+    <div class="page">
+        <div class="flex items-center mb-8">
+            <span class="step-badge">2</span>
+            <h2 class="text-2xl font-bold text-secondary">ワーカー選定 & スカウト</h2>
+        </div>
+
+        <p class="mb-8 text-slate-600">
+            応募が来たらプロフィールを確認します。信頼できるワーカーを見極めるポイントです。
+        </p>
+
+        <div
+            class="bg-blue-50 p-6 rounded-xl text-sm text-blue-900 border border-blue-100 flex gap-4 items-start shadow-sm">
+            <div class="bg-white p-2 rounded-full shadow-sm text-primary">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <strong class="text-lg block mb-2 text-primary">交渉のコツ</strong>
+                <p class="leading-relaxed">
+                    契約前に必ず「メッセージ」で具体的な納期や条件をすり合わせましょう。<br>
+                    認識のズレを防ぐため、仕様書や参考サイトを共有することをお勧めします。
+                </p>
+            </div>
+        </div>
+        <div class="page-number">7</div>
+    </div>
+
+    <!-- PAGE 8: STEP 3 契約・仮払い -->
+    <div class="page">
+        <div class="flex items-center mb-8">
+            <span class="step-badge">3</span>
+            <h2 class="text-2xl font-bold text-secondary">契約締結 & 仮払い</h2>
+        </div>
+
+        <div class="mb-10 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <h3 class="font-bold text-lg mb-4 text-secondary flex items-center gap-2">
+                <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                    </path>
+                </svg>
+                契約の流れ
+            </h3>
+            <div class="flex justify-between items-center text-sm px-4">
+                <div class="text-center w-1/4">
+                    <div class="bg-gray-100 text-gray-500 font-bold py-2 rounded-lg mb-2">オファー送信</div>
+                    <span class="text-gray-400">Client</span>
+                </div>
+                <div class="text-gray-300">➜</div>
+                <div class="text-center w-1/4">
+                    <div class="bg-orange-100 text-orange-800 font-bold py-2 rounded-lg mb-2 border border-orange-200">
+                        契約合意</div>
+                    <span class="text-gray-400">Worker</span>
+                </div>
+                <div class="text-gray-300">➜</div>
+                <div class="text-center w-1/4">
+                    <div
+                        class="bg-yellow-100 text-yellow-800 font-bold py-2 rounded-lg mb-2 border border-yellow-200 shadow-sm ring-2 ring-yellow-400 ring-opacity-50">
+                        仮払い (決済)</div>
+                    <span class="text-gray-400">Client</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mock-window mb-6 shadow-card bg-gray-50">
+            <div class="mock-header">
+                <span class="text-xs text-gray-500">契約詳細画面（仮決済待ち）</span>
+            </div>
+            <div class="p-8">
+                <div class="bg-yellow-50 p-6 rounded-xl border-l-4 border-yellow-500 mb-6 shadow-sm">
+                    <h4 class="font-bold text-yellow-900 mb-2 text-lg flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                            </path>
+                        </svg>
+                        仮決済手続きが必要です
+                    </h4>
+                    <p class="text-sm text-yellow-800 mb-4 ml-7">
+                        業務を開始するには、まず仮決済（決済予約）を行う必要があります。<br>
+                        仮決済が完了すると、ワーカーに業務開始の通知が送られます。
+                    </p>
+                    <div class="ml-7">
+                        <div
+                            class="mock-btn bg-accent hover:bg-accent/90 text-white text-sm shadow-md hover:shadow-lg transition-shadow">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                                </path>
+                            </svg>
+                            仮決済へ進む
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                <h4 class="font-bold text-sm text-secondary mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    3Dセキュア認証
+                </h4>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                    クレジットカード会社の本人認証画面が表示される場合があります。パスワードやワンタイムパスワードを入力して認証を完了させてください。
+                </p>
+            </div>
+            <div class="bg-red-50 p-5 rounded-xl border border-red-100 shadow-sm">
+                <h4 class="font-bold text-sm text-red-700 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                        </path>
+                    </svg>
+                    まだ支払いは確定しません
+                </h4>
+                <p class="text-xs text-red-600 leading-relaxed">
+                    仮決済の段階では、あくまで「与信枠の確保」です。<br>
+                    ワーカーへの送金は、全ての業務が完了し「検収」ボタンを押した後に行われます。
+                </p>
+            </div>
+        </div>
+        <div class="page-number">8</div>
+    </div>
+
+    <!-- PAGE 9: STEP 4 業務管理 -->
+    <div class="page">
+        <div class="flex items-center mb-8">
+            <span class="step-badge">4</span>
+            <h2 class="text-2xl font-bold text-secondary">業務管理 & コミュニケーション</h2>
+        </div>
+
+        <p class="mb-8 text-slate-600">
+            仮決済が完了すると、ステータスが<span
+                class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold text-xs border border-blue-200">業務進行中</span>になります。<br>
+            ワーカーが作業を開始します。
+        </p>
+
+        <div class="mock-window mb-10 shadow-card">
+            <div class="mock-header">
+                <span class="text-xs text-gray-500">メッセージ画面</span>
+            </div>
+            <div class="p-6 bg-[#F3F4F6] h-56 flex flex-col gap-4 overflow-hidden relative">
+                <div class="self-end max-w-[80%]">
+                    <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none text-sm shadow-sm">
+                        デザインの初稿はいつ頃になりますか？
+                    </div>
+                    <div class="text-[10px] text-gray-400 text-right mt-1">10:30</div>
+                </div>
+
+                <div class="self-start max-w-[80%]">
+                    <div
+                        class="bg-white border border-gray-200 p-3 rounded-2xl rounded-tl-none text-sm shadow-sm text-gray-800">
+                        明日の午後には提出できる予定です。もう少々お待ちください。
+                    </div>
+                    <div class="text-[10px] text-gray-400 mt-1">10:35</div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-200 bg-white">
+                <div class="text-xs text-gray-500 mb-2 space-y-1">
+                    <p>※ファイルは最大100MBまでアップロードできます。100MBを超える場合は、外部ファイル共有サービス（Google Drive、Dropbox等）のURLをメッセージで送信してください。
+                    </p>
+                    <p class="text-primary font-medium">
+                        あなたの使用量: 0.0MB / 100MB（残り 100.0MB）
+                    </p>
+                </div>
+                <div class="flex gap-2 items-end">
+                    <div class="mock-btn bg-white hover:bg-gray-100 text-gray-500 p-2 rounded-md border-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
+                            </path>
+                        </svg>
+                    </div>
+                    <div class="mock-input bg-white text-gray-400 border border-gray-300 rounded-lg flex-1">メッセージを入力...
+                    </div>
+                    <div
+                        class="mock-btn mock-btn-primary p-2 shadow-sm rounded-md h-10 w-10 flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+            <h3 class="font-bold text-lg mb-4 text-secondary border-b pb-2">トラブル防止のために</h3>
+            <ul class="space-y-4 text-sm text-gray-700">
+                <li class="flex items-start gap-3">
+                    <div class="bg-blue-100 p-1.5 rounded-full text-blue-600 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <strong class="block text-gray-900 mb-1">こまめな確認</strong>
+                        長期間連絡がないと不安になります。定期的に進捗を確認しましょう。
+                    </div>
+                </li>
+                <li class="flex items-start gap-3">
+                    <div class="bg-blue-100 p-1.5 rounded-full text-blue-600 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <strong class="block text-gray-900 mb-1">重要なやり取りはメッセージで</strong>
+                        言った言わないを防ぐため、重要な指示は必ずサイト内のメッセージ機能で行い、ログを残しましょう。
+                    </div>
+                </li>
+                <li class="flex items-start gap-3">
+                    <div class="bg-red-100 p-1.5 rounded-full text-red-600 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <strong class="block text-gray-900 mb-1">連絡不通の場合の救済措置</strong>
+                        7日間以上ワーカーと連絡が取れない場合、契約画面から「連絡不通を報告」できます。<br>
+                        運営が確認後、強制キャンセル対応を行います。
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="page-number">9</div>
+    </div>
+
+    <!-- PAGE 10: STEP 5 納品・検収 -->
+    <div class="page">
+        <div class="flex items-center mb-8">
+            <span class="step-badge">5</span>
+            <h2 class="text-2xl font-bold text-secondary">納品確認 & 検収</h2>
+        </div>
+
+        <p class="mb-8 text-slate-600">
+            ワーカーから納品報告があると、ステータスが<span
+                class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold text-xs border border-purple-200">納品確認待ち</span>になります。
+        </p>
+
+        <div class="mock-window mb-8 shadow-card">
+            <div class="mock-header">
+                <span class="text-xs text-gray-500">契約詳細画面（納品確認待ち）</span>
+            </div>
+            <div class="p-8">
+                <div class="bg-blue-50 p-6 rounded-xl border-l-4 border-blue-500 mb-6 shadow-sm">
+                    <h4 class="font-bold text-blue-900 mb-4 flex items-center gap-2 text-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        納品物
+                    </h4>
+                    <div class="bg-white p-4 rounded-lg border border-blue-200 mb-4 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span
+                                class="flex items-center gap-3 text-sm text-blue-600 font-medium cursor-pointer hover:underline">
+                                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg>
+                                design_v1.zip
+                            </span>
+                            <span
+                                class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
+                                0/3回
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1 mb-3">注意）各ファイルのダウンロードは3回までです。</div>
+                    <p class="text-sm text-blue-800 mb-6 ml-1">
+                        内容を確認し、問題なければ検収を完了してください。
+                    </p>
+                    <div class="flex gap-4">
+                        <div class="mock-btn mock-btn-primary shadow-md hover:shadow-lg">検収完了（支払いを確定）</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+            <div class="bg-amber-50 p-5 rounded-xl border border-amber-200">
+                <h4 class="font-bold text-sm text-amber-900 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                        </path>
+                    </svg>
+                    ダウンロード制限について
+                </h4>
+                <p class="text-xs text-amber-800 leading-relaxed">
+                    セキュリティのため、各ファイルのダウンロードは<strong>3回まで</strong>に制限されています。ダウンロード後はご自身のPC等に確実に保存してください。
+                </p>
+            </div>
+            <div class="bg-green-50 p-5 rounded-xl border border-green-200">
+                <h4 class="font-bold text-sm text-green-800 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    検収完了ボタンを押すと？
+                </h4>
+                <p class="text-xs text-green-700 leading-relaxed">
+                    支払いが確定し、仮払いされていた金額がワーカーへ送金されます。<br>
+                    <strong>これ以降のキャンセル・返金はできません。</strong>必ず中身を確認してから押してください。
+                </p>
+            </div>
+        </div>
+        <div class="page-number">10</div>
+    </div>
+
+    <!-- PAGE 11: STEP 6 評価・領収書 -->
+    <div class="page">
+        <div class="flex items-center mb-8">
+            <span class="step-badge">6</span>
+            <h2 class="text-2xl font-bold text-secondary">評価 & 領収書発行</h2>
+        </div>
+
+        <div class="mock-window mb-8 shadow-card">
+            <div class="mock-header">
+                <span class="text-xs text-gray-500">契約完了画面</span>
+            </div>
+            <div class="p-8 space-y-6">
+                <div
+                    class="bg-green-100 text-green-800 px-4 py-3 rounded-lg text-center font-bold border border-green-200 shadow-sm flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    契約が完了しました
+                </div>
+
+                <div class="bg-gray-50 p-5 rounded-xl border-l-4 border-gray-400">
+                    <h4 class="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                            </path>
+                        </svg>
+                        評価
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-4">取引の感想を5段階で評価してください。</p>
+                    <div class="mock-btn bg-white border border-gray-300 text-sm shadow-sm hover:bg-gray-50">ワーカーを評価する
+                    </div>
+                </div>
+
+                <div class="bg-green-50 p-5 rounded-xl border-l-4 border-green-500">
+                    <h4 class="font-bold text-green-900 mb-2 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        領収書
+                    </h4>
+                    <p class="text-sm text-green-800 mb-4">領収書を発行できます。</p>
+                    <div
+                        class="mock-btn bg-white border border-green-300 text-green-700 text-sm shadow-sm hover:bg-green-50">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        領収書をダウンロード (PDF)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-amber-50 p-6 rounded-xl border border-amber-200">
+            <h3 class="font-bold text-amber-900 mb-2 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                データ保管期限について
+            </h3>
+            <p class="text-sm text-amber-800 leading-relaxed">
+                納品されたファイルやメッセージ履歴は、契約完了から<strong>3ヶ月後に自動的に削除</strong>されます。<br>
+                必要なデータは期間内に必ずダウンロードしてください。削除後の復元はできません。
+            </p>
+        </div>
+        <div class="page-number">11</div>
+    </div>
+
+    <!-- PAGE 12: ワーカー編トップ -->
+    <div class="page flex flex-col justify-center items-center bg-secondary text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-secondary to-black opacity-90"></div>
+        <div class="relative z-10 text-center">
+            <span
+                class="inline-block py-2 px-6 border border-white/30 rounded-full text-base font-bold tracking-wider mb-6 bg-white/10 backdrop-blur-sm">WORKER
+                GUIDE</span>
+            <h2 class="text-6xl font-black mb-8 leading-tight drop-shadow-lg">ワーカー様向け<br>受注ガイド</h2>
+            <p class="text-2xl text-gray-200 max-w-2xl mx-auto leading-relaxed font-light">
+                安心して働くための準備から、<br>報酬を確実に受け取るまでのステップを<br>解説します。
+            </p>
+        </div>
+        <div class="page-number">12</div>
+    </div>
+
+    <!-- PAGE 13: STEP 0 アカウント準備 -->
+    <div class="page">
+        <div class="flex items-center mb-8">
+            <span class="step-badge">0</span>
+            <h2 class="text-2xl font-bold text-secondary">アカウント準備（重要）</h2>
+        </div>
+
+        <p class="mb-8 text-slate-600">
+            報酬を受け取るためには、<strong>本人確認と銀行口座登録</strong>が必須です。<br>
+            マイページの「報酬・本人確認」メニューから設定します。
+        </p>
+
+        <div class="mock-window mb-8 shadow-card">
+            <div class="mock-header">
+                <span class="text-xs text-gray-500">報酬・本人確認画面</span>
+            </div>
+            <div class="p-8">
+                <div class="border border-gray-200 rounded-xl p-6">
+                    <h3 class="font-bold text-lg mb-4 flex items-center gap-2 text-secondary">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                            </path>
+                        </svg>
+                        Stripe連携（本人確認）
+                    </h3>
+                    <p class="text-sm text-gray-600 mb-6">
+                        報酬の受け取りおよび本人確認のために、Stripeアカウントとの連携が必要です。
+                    </p>
+                    <div
+                        class="mock-btn mock-btn-primary w-full md:w-auto px-6 py-3 text-base shadow-md hover:shadow-lg">
+                        Stripeと連携する <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div class="bg-indigo-50 p-6 rounded-xl border-l-4 border-indigo-500">
+                <h4 class="font-bold text-indigo-900 mb-3 text-lg">設定の流れ</h4>
+                <ol class="list-decimal list-inside text-sm text-indigo-800 space-y-2 ml-2">
+                    <li>上記ボタンを押すと、Stripe（外部サイト）の登録画面へ移動します。</li>
+                    <li>画面の指示に従い、電話番号認証、氏名、住所などを入力します。</li>
+                    <li><strong>銀行口座情報</strong>を入力します（報酬の振込先となります）。</li>
+                    <li>身分証明書（運転免許証など）の写真をアップロードします。</li>
+                    <li>完了すると自動的に元の画面に戻り、「連携済み」となります。</li>
+                </ol>
+            </div>
+            <p class="text-xs text-gray-500 px-2">
+                ※ Stripeでの本人確認審査には数分〜数時間かかる場合があります。<br>
+                ※ 審査が完了すると、プロフィールに「本人確認済み」バッジが表示されます。
+            </p>
+        </div>
+        <div class="page-number">13</div>
+    </div>
+
+    <!-- PAGE 14: STEP 1 案件検索 -->
+    <div class="page">
+        <div class="flex items-center mb-8">
+            <span class="step-badge">1</span>
+            <h2 class="text-2xl font-bold text-secondary">案件検索 & 応募</h2>
+        </div>
+
+        <p class="mb-8 text-slate-600">
+            「仕事を探す」メニューから気になる案件を見つけ、「応募する」ボタンを押します。
+        </p>
+
+        <div class="mock-window mb-8 shadow-card">
+            <div class="mock-header">
+                <span class="text-xs text-gray-500">応募フォーム</span>
+            </div>
+            <div class="p-8">
+                <label class="block text-sm font-bold text-gray-700 mb-2">提案文（メッセージ）</label>
+                <div class="mock-input h-40 text-gray-500 text-sm p-4 bg-gray-50">
+                    はじめまして。〇〇と申します。<br>
+                    本案件に興味があり応募いたしました。<br>
+                    <br>
+                    【経歴・実績】<br>
+                    Webエンジニアとして3年の経験があります。...<br>
+                    <br>
+                    【納期】<br>
+                    ご依頼から1週間程度で納品可能です。...<br>
+                    <br>
+                    ぜひご検討ください。
+                </div>
+                <div class="flex justify-end mt-6">
+                    <div class="mock-btn mock-btn-primary px-8 shadow-md">応募する</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <h3 class="font-bold text-lg mb-4 text-accent flex items-center gap-2">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                採用される提案のコツ
+            </h3>
+            <ul class="space-y-4 text-sm text-gray-700">
+                <li class="flex items-start gap-3">
+                    <div class="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0"></div>
+                    <div>
+                        <strong>具体的な実績を提示する</strong><br>
+                        過去の制作物やポートフォリオのURLを載せることで、スキルを証明できます。
+                    </div>
+                </li>
+                <li class="flex items-start gap-3">
+                    <div class="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0"></div>
+                    <div>
+                        <strong>クライアントの質問に答える</strong><br>
+                        募集要項で「納期はいつか」「類似経験はあるか」などが問われている場合は、必ず回答しましょう。
+                    </div>
+                </li>
+                <li class="flex items-start gap-3">
+                    <div class="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0"></div>
+                    <div>
+                        <strong>プロフィールの充実</strong><br>
+                        提案文だけでなく、プロフィールページ（自己紹介、スキル、ポートフォリオ）もしっかり入力しておきましょう。
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="page-number">14</div>
+    </div>
+
+    <!-- PAGE 15: STEP 2 契約・業務開始 -->
+    <div class="page">
+        <div class="flex items-center mb-8">
+            <span class="step-badge">2</span>
+            <h2 class="text-2xl font-bold text-secondary">契約合意 & 業務開始</h2>
+        </div>
+
+        <p class="mb-8 text-slate-600">
+            クライアントから採用されると「契約オファー」が届きます。<br>
+            ここからの流れが非常に重要です。
+        </p>
+
+        <div class="space-y-8 pl-4 relative">
+            <div class="absolute left-[19px] top-4 bottom-4 w-0.5 bg-gray-200"></div>
+
+            <!-- 1. 合意 -->
+            <div class="relative pl-10">
+                <span
+                    class="absolute left-0 top-0 w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center font-bold text-gray-500 z-10">1</span>
+                <h4 class="font-bold text-lg mb-3 text-secondary">契約内容を確認して合意する</h4>
+                <div class="mock-window mb-4 shadow-sm">
+                    <div class="p-5 bg-blue-50 border-l-4 border-blue-500">
+                        <p class="text-sm text-blue-800 mb-3">契約内容を確認し、問題なければ合意してください。</p>
+                        <div class="mock-btn mock-btn-primary text-sm shadow-sm">契約に合意する</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 待機 -->
+            <div class="relative pl-10">
+                <span
+                    class="absolute left-0 top-0 w-10 h-10 rounded-full bg-white border-2 border-accent flex items-center justify-center font-bold text-accent z-10">2</span>
+                <h4 class="font-bold text-lg mb-3 text-accent">まだ業務は始めないで！</h4>
+                <div class="bg-amber-50 p-4 rounded-lg border border-amber-100 text-sm text-amber-900 mb-2">
+                    合意しても、クライアントが<strong>「仮払い」を完了するまでは待機</strong>してください。<br>
+                    ステータスは<span
+                        class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-bold border border-yellow-200">クライアントの仮決済待ち</span>となります。
+                </div>
+            </div>
+
+            <!-- 3. 開始 -->
+            <div class="relative pl-10">
+                <span
+                    class="absolute left-0 top-0 w-10 h-10 rounded-full bg-success border-2 border-white flex items-center justify-center font-bold text-white z-10 shadow-md">3</span>
+                <h4 class="font-bold text-lg mb-3 text-success">仮払い完了通知 -> 業務開始</h4>
+                <div class="mock-window shadow-sm">
+                    <div class="p-5 bg-cyan-50 border-l-4 border-cyan-500">
+                        <h5 class="font-bold text-cyan-900 text-base mb-2 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            業務開始
+                        </h5>
+                        <p class="text-sm text-cyan-800 mb-4">クライアントの仮決済が完了しました。業務を開始してください。</p>
+                        <div
+                            class="mock-btn bg-white border border-gray-300 text-sm shadow-sm hover:bg-gray-50 text-gray-700">
+                            業務を開始する</div>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 pl-1">
+                    「業務を開始する」ボタンを押すと、ステータスが<span
+                        class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-bold border border-blue-200">業務進行中</span>に変わります。
+                </p>
+            </div>
+        </div>
+        <div class="page-number">15</div>
+    </div>
+
+    <!-- PAGE 16: STEP 3 納品報告 -->
+    <div class="page">
+        <div class="flex items-center mb-8">
+            <span class="step-badge">3</span>
+            <h2 class="text-2xl font-bold text-secondary">納品報告 & ファイル提出</h2>
+        </div>
+
+        <div class="mock-window mb-8 shadow-card">
+            <div class="mock-header">
+                <span class="text-xs text-gray-500">契約詳細画面（業務進行中）</span>
+            </div>
+            <div class="p-8">
+                <div class="bg-blue-50 p-6 rounded-xl border-l-4 border-blue-500">
+                    <h4 class="font-bold text-blue-900 mb-4 text-lg">納品報告</h4>
+
+                    <label class="block text-sm font-bold text-gray-700 mb-2">成果物ファイル</label>
+                    <div
+                        class="border-2 border-dashed bg-white border-gray-300 hover:border-primary rounded-lg p-6 text-center mb-2 cursor-pointer transition-colors">
+                        <div class="w-8 h-8 text-gray-400 mx-auto mb-2">
+                            <svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                </path>
+                            </svg>
+                        </div>
+                        <p class="text-sm text-gray-600">クリックしてファイルを選択するか、ここにドラッグ＆ドロップしてください</p>
+                        <span class="text-xs text-gray-400 mt-1">
+                            注意）ファイルは最大100MBまでアップロードできます。100MBを超える場合は、外部ファイル共有サービス（Google
+                            Drive、Dropbox等）のURLをメッセージ欄に記載してください。
+                        </span>
+                    </div>
+
+                    <label class="block text-sm font-bold text-gray-700 mb-2">メッセージ</label>
+                    <div class="mock-input h-32 mb-4 text-sm text-gray-400 bg-white">
+                        納品いたします。ご確認をお願いいたします。
+                    </div>
+
+                    <div class="mock-btn mock-btn-primary shadow-md hover:shadow-lg w-auto inline-flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                            </path>
+                        </svg>
+                        納品報告する
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-number">16</div>
+    </div>
+
+    <!-- PAGE 17: STEP 4 報酬受取 -->
+    <div class="page">
+        <div class="flex items-center mb-8">
+            <span class="step-badge">4</span>
+            <h2 class="text-2xl font-bold text-secondary">報酬受取 & 出金申請</h2>
+        </div>
+
+        <p class="mb-8 text-slate-600">
+            クライアントが検収完了すると、報酬がアカウントの「入金可能残高」に反映されます。<br>
+            マイページの「報酬・本人確認」から出金申請を行います。
+        </p>
+
+        <div class="mock-window mb-8 shadow-card">
+            <div class="mock-header">
+                <span class="text-xs text-gray-500">報酬・本人確認画面</span>
+            </div>
+            <div class="p-8">
+                <h3 class="font-bold mb-4 text-lg text-secondary flex items-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
+                    残高・入金リクエスト
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-green-50 border-l-4 border-green-500 rounded-lg p-4">
+                        <p class="text-sm text-green-700 font-bold flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            入金可能残高
+                        </p>
+                        <p class="text-2xl font-bold text-green-900 mt-2">¥ 10,000</p>
+                    </div>
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-4">
+                        <p class="text-sm text-yellow-700 font-bold flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            処理中の残高
+                        </p>
+                        <p class="text-2xl font-bold text-yellow-900 mt-2">¥ 0</p>
+                        <p class="text-xs text-yellow-600 mt-1">※入金準備中の金額</p>
+                    </div>
+                    <div class="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
+                        <p class="text-sm text-blue-700 font-bold flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                </path>
+                            </svg>
+                            合計残高
+                        </p>
+                        <p class="text-2xl font-bold text-blue-800 mt-2">¥ 10,000</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 border-l-4 border-gray-400 p-4 rounded-lg">
+                    <h4 class="font-medium text-secondary mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        今回のお振込予定
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 pl-7">
+                        <div>
+                            <p class="text-sm text-gray-600">入金可能残高</p>
+                            <p class="text-lg font-bold">¥ 10,000</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">入金手数料</p>
+                            <p class="text-lg font-bold text-red-600">- ¥ 475</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">受取予定額</p>
+                            <p class="text-lg font-bold text-green-600">¥ 9,525</p>
+                        </div>
+                    </div>
+                    <div class="pl-7">
+                        <div class="mock-btn mock-btn-primary w-full md:w-auto inline-flex items-center">
+                            銀行口座に入金をリクエスト
+                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                            </svg>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">
+                            ※ 入金は通常1〜4営業日で銀行口座に反映されます。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-sm text-gray-500 border-t pt-4">
+            <p><strong>入金手数料:</strong> 入金額の0.25% + 450円</p>
+            <p><strong>最低入金額:</strong> 500円</p>
+        </div>
+
+        <p class="text-xs text-gray-500 text-center">
+            ※ 入金リクエストから通常1〜4営業日で登録口座へ振り込まれます。
+        </p>
+        <div class="page-number">17</div>
+    </div>
+
+    <!-- PAGE 18: 支払調書・CSV -->
+    <div class="page">
+        <div class="flex items-center mb-8">
+            <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-bold mr-4">便利機能</span>
+            <h2 class="text-2xl font-bold text-secondary">支払調書 & CSV出力</h2>
+        </div>
+
+        <p class="mb-8 text-slate-600">
+            確定申告などに必要な書類をダウンロードできます。<br>
+            「報酬・本人確認」ページの下部にあります。
+        </p>
+
+        <div class="mock-window mb-8 shadow-card">
+            <div class="mock-header">
+                <span class="text-xs text-gray-500">期間別サマリー・支払調書</span>
+            </div>
+            <div class="p-8 space-y-8">
+                <div>
+                    <h4 class="font-bold text-base mb-3 flex items-center gap-2 text-secondary">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        年間支払調書（確定申告用）
+                    </h4>
+                    <div class="flex gap-3">
+                        <div class="mock-input w-32 bg-white text-center">2025年分</div>
+                        <div
+                            class="mock-btn bg-white border border-gray-300 text-gray-700 text-sm shadow-sm hover:bg-gray-50">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            ダウンロード
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">PDF形式で発行されます。<br>※ 暦年（1月1日〜12月31日）ベースで集計されます。</p>
+                </div>
+
+                <div class="border-t pt-6">
+                    <h4 class="font-bold text-base mb-3 flex items-center gap-2 text-secondary">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        報酬履歴 (CSV)
+                    </h4>
+                    <div
+                        class="mock-btn bg-white border border-gray-300 text-gray-700 text-sm shadow-sm hover:bg-gray-50 inline-flex">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        CSV出力
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Excelなどで管理するのに便利です。</p>
+                </div>
+            </div>
+        </div>
+        <div class="page-number">18</div>
+    </div>
+
+    <!-- PAGE 19: トラブルシューティング -->
+    <!-- (削除) -->
+
+    <!-- PAGE 20: 禁止事項 -->
+    <div class="page">
+        <div class="border-b-4 border-danger pb-4 mb-8 flex justify-between items-end">
+            <h2 class="text-3xl font-bold text-secondary">禁止事項・ルール詳細</h2>
+        </div>
+
+        <div class="bg-red-50 p-8 rounded-xl border border-red-200 mb-8">
+            <h3 class="text-xl font-bold text-red-700 mb-6 flex items-center">
+                <svg class="w-7 h-7 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                    </path>
+                </svg>
+                特に注意していただきたいこと
+            </h3>
+            <ul class="space-y-6 text-sm text-gray-700">
+                <li class="bg-white p-6 rounded-lg border border-red-100 shadow-sm">
+                    <strong class="text-red-600 block mb-2 text-lg">直接取引（中抜き）の禁止</strong>
+                    Project Market Hubを介さずに金銭の授受を行うこと、または勧誘することは厳禁です。<br>
+                    発覚した場合、即時のアカウント停止および違約金を請求する場合があります。
+                </li>
+                <li class="bg-white p-6 rounded-lg border border-red-100 shadow-sm">
+                    <strong class="text-red-600 block mb-2 text-lg">外部連絡ツールの利用制限</strong>
+                    <strong class="text-secondary">仮払い完了前</strong>に、LINE、Chatwork、Zoom、メールアドレスなどの外部連絡先を交換することは禁止です。<br>
+                    契約成立後（仮払い後）は、業務遂行に必要な範囲で交換可能ですが、トラブル防止のため原則としてサイト内メッセージを推奨します。
+                </li>
+            </ul>
+        </div>
+
+        <h4 class="font-bold text-lg mb-4 text-secondary border-l-4 border-gray-300 pl-3">その他の禁止事項</h4>
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                <li class="flex items-start gap-2"><span class="text-red-500">•</span> マルチ商法、ネットワークビジネス、ねずみ講への勧誘</li>
+                <li class="flex items-start gap-2"><span class="text-red-500">•</span> 公序良俗に反する依頼（アダルト、出会い系、犯罪に関連するもの）
+                </li>
+                <li class="flex items-start gap-2"><span class="text-red-500">•</span> 第三者の著作権、肖像権を侵害する行為</li>
+                <li class="flex items-start gap-2"><span class="text-red-500">•</span> 「購入代行」「荷受け代行」など、マネーロンダリングの恐れがある依頼
+                </li>
+                <li class="flex items-start gap-2"><span class="text-red-500">•</span> ECサイトのレビュー投稿（サクラ行為）の依頼</li>
+                <li class="flex items-start gap-2"><span class="text-red-500">•</span> システムの不具合を意図的に利用する行為</li>
+            </ul>
+        </div>
+
+        <!-- トラブルシューティングの補足 -->
+        <div class="mt-8 bg-gray-50 p-6 rounded-xl border border-gray-200">
+            <h4 class="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                トラブル時の対応
+            </h4>
+            <div class="space-y-3 text-sm text-gray-600">
+                <p><strong>キャンセル:</strong> やむを得ない事情がある場合、契約詳細画面の下部にある「キャンセル申請」ボタンから手続き可能です。</p>
+                <p><strong>連絡不通:</strong> 7日間以上相手からの返信がない場合、「連絡不通を報告」機能が利用可能になります。運営が確認後、強制キャンセル等の対応を行います。</p>
+            </div>
+        </div>
+        <div class="page-number">19</div>
+    </div>
+
+    <!-- PAGE 21: FAQ -->
+    <div class="page">
+        <div class="border-b-4 border-gray-300 pb-4 mb-8 flex justify-between items-end">
+            <h2 class="text-3xl font-bold text-secondary">よくある質問 (FAQ)</h2>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                <h4 class="font-bold text-secondary mb-3 flex items-center gap-2">
+                    <span class="text-primary text-xl">Q.</span> 会員登録は無料ですか？
+                </h4>
+                <p class="text-sm text-gray-600 bg-gray-50 p-4 rounded-lg leading-relaxed">
+                    A. はい、登録・案件掲載・応募はすべて無料です。<br>
+                    契約が成立し、報酬が支払われる際にのみ手数料が発生します。
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                <h4 class="font-bold text-secondary mb-3 flex items-center gap-2">
+                    <span class="text-primary text-xl">Q.</span> システム手数料はいくらですか？
+                </h4>
+                <p class="text-sm text-gray-600 bg-gray-50 p-4 rounded-lg leading-relaxed">
+                    A. ワーカー様の報酬額の <strong>5%</strong> です。<br>
+                    （例：10,000円の契約の場合、500円が手数料となり、9,500円が受取額となります）
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                <h4 class="font-bold text-secondary mb-3 flex items-center gap-2">
+                    <span class="text-primary text-xl">Q.</span> 法人として利用できますか？
+                </h4>
+                <p class="text-sm text-gray-600 bg-gray-50 p-4 rounded-lg leading-relaxed">
+                    A. はい、法人・個人問わずご利用いただけます。<br>
+                    領収書や支払調書の発行も可能です。
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                <h4 class="font-bold text-secondary mb-3 flex items-center gap-2">
+                    <span class="text-primary text-xl">Q.</span> スマートフォンでも使えますか？
+                </h4>
+                <p class="text-sm text-gray-600 bg-gray-50 p-4 rounded-lg leading-relaxed">
+                    A. はい、スマートフォンやタブレットからもご利用いただけます。<br>
+                    ただし、ファイルのアップロードや複雑な入力はPCでの操作を推奨します。
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                <h4 class="font-bold text-secondary mb-3 flex items-center gap-2">
+                    <span class="text-primary text-xl">Q.</span> 退会したいのですが
+                </h4>
+                <p class="text-sm text-gray-600 bg-gray-50 p-4 rounded-lg leading-relaxed">
+                    A. マイページの設定から退会手続きが可能です。<br>
+                    ただし、進行中の契約がある場合や、未出金の報酬がある場合は退会できません。
+                </p>
+            </div>
+        </div>
+        <div class="page-number">20</div>
+    </div>
+
+    <!-- PAGE 21: ブランドページ -->
+    <div class="page flex flex-col justify-center items-center bg-slate-50 relative overflow-hidden">
+        <!-- 装飾的な背景 -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-success"></div>
+        <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-100/50 rounded-full blur-3xl"></div>
+        <div class="absolute -top-24 -left-24 w-96 h-96 bg-orange-100/50 rounded-full blur-3xl"></div>
+
+        <div class="relative z-10 text-center px-12">
+            <div class="flex flex-col items-center mb-16">
+                <div
+                    class="w-24 h-24 bg-primary rounded-3xl flex items-center justify-center text-white shadow-floating mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <h2 class="text-4xl font-black text-secondary tracking-tight">Project Market Hub</h2>
+                <div class="h-1.5 w-20 bg-primary mt-4 rounded-full"></div>
+            </div>
+
+            <div class="space-y-8 mb-16">
+                <h3 class="text-3xl font-bold text-secondary">
+                    あなたのビジネスを、<br>
+                    <span class="text-primary text-4xl">もっと自由に。</span>
+                </h3>
+                <p class="text-xl text-slate-600 font-medium leading-relaxed max-w-lg mx-auto">
+                    Project Market Hubは、信頼と技術を繋ぎ、<br>
+                    新しい働き方を創出するプラットフォームです。
+                </p>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl shadow-card border border-slate-100 inline-block">
+                <p class="text-slate-400 text-sm font-bold tracking-widest uppercase mb-4">Official Site</p>
+                <p class="text-primary text-3xl font-black tracking-tight">pj-markethub.com</p>
+            </div>
+
+            <div class="mt-20 pt-10 border-t border-slate-200 w-full max-w-md mx-auto">
+                <p class="text-slate-500 text-sm">2025 Project Market Hub. All rights reserved.</p>
+            </div>
+        </div>
+        <div class="page-number">21</div>
+    </div>
+
+</body>
+
+</html>
+
+
+</file_content>
+
+</error>
+<environment_details>
+
+</environment_details>

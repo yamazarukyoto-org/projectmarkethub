@@ -4,10 +4,26 @@ import React, { useState, useEffect, Suspense, useCallback, useMemo } from "reac
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { CreditCard, CheckCircle, ExternalLink, History, Wallet, AlertCircle, Download, FileText, Calendar } from "lucide-react";
+import { CreditCard, CheckCircle, ExternalLink, History, Wallet, AlertCircle, Download, FileText, Calendar, BanknoteIcon, ArrowDownToLine, Info, Clock, DollarSign } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import Link from "next/link";
+
+// 残高情報の型定義
+interface BalanceInfo {
+    balance: number;
+    availableBalance: number;
+    pendingBalance: number;
+    payoutFee: number;
+    netPayoutAmount: number;
+    canPayout: boolean;
+    minimumPayoutAmount: number;
+    feeRate: number;
+    feeFixed: number;
+    isDemo?: boolean;
+    message?: string;
+}
 
 interface CompletedContract {
     id: string;
@@ -28,6 +44,11 @@ function PaymentSettingsContent() {
     const [totalEarnings, setTotalEarnings] = useState(0);
     const [stripeStatus, setStripeStatus] = useState<any>(null);
     const [statusLoading, setStatusLoading] = useState(true);
+    
+    // 残高・入金リクエスト用のstate
+    const [balanceInfo, setBalanceInfo] = useState<BalanceInfo | null>(null);
+    const [balanceLoading, setBalanceLoading] = useState(true);
+    const [payoutLoading, setPayoutLoading] = useState(false);
     
     // 期間フィルター用のstate
     const currentYear = new Date().getFullYear();
@@ -129,6 +150,72 @@ function PaymentSettingsContent() {
     useEffect(() => {
         fetchStripeStatus();
     }, [fetchStripeStatus]);
+
+    // 残高情報を取得
+    const fetchBalance = useCallback(async () => {
+        if (!user || !firebaseUser || !stripeStatus?.connected) return;
+        setBalanceLoading(true);
+        try {
+            const token = await firebaseUser.getIdToken();
+            const res = await fetch("/api/stripe/request-payout", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (!data.error) {
+                setBalanceInfo(data);
+            }
+        } catch (error) {
+            console.error("Error fetching balance:", error);
+        } finally {
+            setBalanceLoading(false);
+        }
+    }, [user, firebaseUser, stripeStatus?.connected]);
+
+    useEffect(() => {
+        if (stripeStatus?.connected) {
+            fetchBalance();
+        }
+    }, [fetchBalance, stripeStatus?.connected]);
+
+    // 入金リクエスト
+    const handleRequestPayout = async () => {
+        if (!user || !firebaseUser) return;
+        
+        if (!balanceInfo?.canPayout) {
+            alert(`残高が最低入金額（${balanceInfo?.minimumPayoutAmount || 500}円）に達していません。`);
+            return;
+        }
+
+        const confirmMessage = `入金をリクエストしますか？\n\n残高: ${formatCurrency(balanceInfo.availableBalance)}\n入金手数料: ${formatCurrency(balanceInfo.payoutFee)}\n受取予定額: ${formatCurrency(balanceInfo.netPayoutAmount)}`;
+        
+        if (!confirm(confirmMessage)) return;
+
+        setPayoutLoading(true);
+        try {
+            const token = await firebaseUser.getIdToken();
+            const res = await fetch("/api/stripe/request-payout", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}` 
+                },
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                alert(data.message || "入金リクエストが完了しました。");
+                // 残高を再取得
+                fetchBalance();
+            } else {
+                alert(`エラー: ${data.error || "入金リクエストに失敗しました。"}`);
+            }
+        } catch (error) {
+            console.error("Error requesting payout:", error);
+            alert("通信エラーが発生しました。");
+        } finally {
+            setPayoutLoading(false);
+        }
+    };
 
     // 完了した契約（報酬履歴）を取得
     const fetchCompletedContracts = useCallback(async () => {
@@ -341,7 +428,7 @@ function PaymentSettingsContent() {
                     ) : isConnected ? (
                         <div className="space-y-4">
                             {isRestricted ? (
-                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center gap-3">
+                                <div className="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-4 flex items-center gap-3">
                                     <AlertCircle className="text-yellow-600" size={24} />
                                     <div>
                                         <p className="font-bold text-yellow-800">追加情報が必要です</p>
@@ -351,7 +438,7 @@ function PaymentSettingsContent() {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+                                <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-4 flex items-center gap-3">
                                     <CheckCircle className="text-green-600" size={24} />
                                     <div>
                                         <p className="font-bold text-green-800">連携済み（本人確認完了）</p>
@@ -405,6 +492,115 @@ function PaymentSettingsContent() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* 残高・入金リクエストカード */}
+            {isConnected && !isRestricted && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <BanknoteIcon /> 残高・入金リクエスト
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {balanceLoading ? (
+                            <div className="text-center py-4">残高を読み込み中...</div>
+                        ) : balanceInfo?.isDemo ? (
+                            <div className="text-center py-4 text-gray-500">
+                                {balanceInfo.message || "デモモードのため、残高情報は利用できません。"}
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {/* 残高表示 */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-4">
+                                        <p className="text-sm text-green-700 font-bold flex items-center gap-2">
+                                            <CheckCircle size={16} />
+                                            入金可能残高
+                                        </p>
+                                        <p className="text-2xl font-bold text-green-900 mt-2">
+                                            {formatCurrency(balanceInfo?.availableBalance || 0)}
+                                        </p>
+                                    </div>
+                                    <div className="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-4">
+                                        <p className="text-sm text-yellow-700 font-bold flex items-center gap-2">
+                                            <Clock size={16} />
+                                            処理中の残高
+                                        </p>
+                                        <p className="text-2xl font-bold text-yellow-900 mt-2">
+                                            {formatCurrency(balanceInfo?.pendingBalance || 0)}
+                                        </p>
+                                        <p className="text-xs text-yellow-600 mt-1">
+                                            ※入金準備中の金額
+                                        </p>
+                                    </div>
+                                    <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
+                                        <p className="text-sm text-blue-700 font-bold flex items-center gap-2">
+                                            <DollarSign size={16} />
+                                            合計残高
+                                        </p>
+                                        <p className="text-2xl font-bold text-blue-800 mt-2">
+                                            {formatCurrency(balanceInfo?.balance || 0)}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* 入金リクエスト */}
+                                {balanceInfo?.canPayout && (
+                                    <div className="bg-gray-50 border-l-4 border-gray-400 rounded-lg p-4">
+                                        <h4 className="font-medium text-secondary mb-3 flex items-center gap-2">
+                                            <Info size={18} />
+                                            今回のお振込予定
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 pl-7">
+                                            <div>
+                                                <p className="text-sm text-gray-600">入金可能残高</p>
+                                                <p className="text-lg font-bold">{formatCurrency(balanceInfo.availableBalance)}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-600">入金手数料</p>
+                                                <p className="text-lg font-bold text-red-600">-{formatCurrency(balanceInfo.payoutFee)}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-600">受取予定額</p>
+                                                <p className="text-lg font-bold text-green-600">{formatCurrency(balanceInfo.netPayoutAmount)}</p>
+                                            </div>
+                                        </div>
+                                        <div className="pl-7">
+                                            <Button
+                                                onClick={handleRequestPayout}
+                                                disabled={payoutLoading}
+                                                className="w-full md:w-auto"
+                                            >
+                                                {payoutLoading ? "処理中..." : "銀行口座に入金をリクエスト"}
+                                                <ArrowDownToLine size={16} className="ml-2" />
+                                            </Button>
+                                            <p className="text-xs text-gray-500 mt-2">
+                                                ※ 入金は通常1〜4営業日で銀行口座に反映されます。
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 入金不可の場合 */}
+                                {!balanceInfo?.canPayout && (
+                                    <div className="bg-gray-100 rounded-lg p-4 text-center">
+                                        <AlertCircle className="mx-auto mb-2 text-gray-400" size={32} />
+                                        <p className="text-gray-600">
+                                            入金可能残高が最低入金額（{formatCurrency(balanceInfo?.minimumPayoutAmount || 500)}）に達していません。
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* 手数料説明 */}
+                                <div className="text-sm text-gray-500 border-t pt-4">
+                                    <p><strong>入金手数料:</strong> 入金額の0.25% + 450円</p>
+                                    <p><strong>最低入金額:</strong> 500円</p>
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
 
             {/* 期間別サマリー・支払調書カード */}
             <Card>
@@ -606,10 +802,12 @@ function PaymentSettingsContent() {
                     <h3 className="font-bold text-secondary mb-3">報酬受取に関する注意事項</h3>
                     <ul className="list-disc list-inside space-y-2 text-sm text-gray-600">
                         <li>報酬は、クライアントが検収を完了した時点でStripeアカウントに送金されます。</li>
-                        <li><strong>銀行口座への入金は毎月25日</strong>に行われます。</li>
-                        <li><strong>入金手数料（入金額の0.25% + 250円）はワーカー負担</strong>となります。</li>
+                        <li><strong>銀行口座への入金は、上記「入金リクエスト」ボタンから任意のタイミングでリクエスト</strong>できます。</li>
+                        <li><strong>入金手数料（入金額の0.25% + 450円）はワーカー負担</strong>となります。</li>
+                        <li><strong>最低入金額は500円</strong>です。残高が500円以上になると入金リクエストが可能になります。</li>
                         <li>報酬額からシステム手数料（5%）が差し引かれた金額が受取額となります。</li>
                         <li>銀行口座情報の変更は、Stripeダッシュボードから行ってください。</li>
+                        <li>入金リクエスト後、通常1〜4営業日で銀行口座に反映されます。</li>
                     </ul>
                 </CardContent>
             </Card>

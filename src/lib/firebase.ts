@@ -3,6 +3,7 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getFunctions } from "firebase/functions";
+import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD6uAWaLZ6hHgYZpvRrcCKGOZRGWi3ruNU",
@@ -30,4 +31,15 @@ googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
-export { app, auth, db, storage, functions, googleProvider };
+// Google Analytics の初期化（ブラウザ環境でのみ実行）
+let analytics: Analytics | null = null;
+if (typeof window !== "undefined") {
+  isSupported().then((supported) => {
+    if (supported) {
+      analytics = getAnalytics(app);
+      console.log("Google Analytics initialized");
+    }
+  });
+}
+
+export { app, auth, db, storage, functions, googleProvider, analytics };

@@ -60,6 +60,30 @@ export const createRefund = async (
     return await stripe.refunds.create(options);
 };
 
+export const listTransfers = async (
+    destination: string,
+    limit: number = 10
+): Promise<Stripe.ApiList<Stripe.Transfer>> => {
+    return await stripe.transfers.list({
+        destination,
+        limit,
+    });
+};
+
+export const reverseTransfer = async (
+    transferId: string,
+    amount?: number,
+    metadata: Record<string, string> = {}
+): Promise<Stripe.TransferReversal> => {
+    const options: any = {
+        metadata,
+    };
+    if (amount) {
+        options.amount = amount;
+    }
+    return await stripe.transfers.createReversal(transferId, options);
+};
+
 // PaymentIntentの状態に応じてキャンセルまたは返金を実行
 export const cancelOrRefundPaymentIntent = async (
     paymentIntentId: string,

@@ -25,6 +25,214 @@ const proposalSchema = z.object({
 
 type ProposalFormValues = z.infer<typeof proposalSchema>;
 
+// 提案添付ファイルのダウンロードコンポーネント（ダウンロード回数制限付き）
+function ProposalAttachmentDownload({ 
+    proposalId, 
+    attachmentIndex, 
+    url, 
+    displayName, 
+    userId 
+}: { 
+    proposalId: string; 
+    attachmentIndex: number; 
+    url: string; 
+    displayName: string; 
+    userId: string;
+}) {
+    const [downloadCount, setDownloadCount] = useState(0);
+    const [canDownload, setCanDownload] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const MAX_DOWNLOADS = 3;
+
+    useEffect(() => {
+        // 初期ダウンロード回数を取得
+        const fetchDownloadCount = async () => {
+            if (!userId) return;
+            try {
+                const response = await fetch(
+                    `/api/attachments/download?type=proposal&id=${proposalId}&attachmentIndex=${attachmentIndex}&userId=${userId}`
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    setDownloadCount(data.downloadCount);
+                    setCanDownload(data.canDownload);
+                }
+            } catch (error) {
+                console.error("Failed to fetch download count:", error);
+            }
+        };
+        fetchDownloadCount();
+    }, [proposalId, attachmentIndex, userId]);
+
+    const handleDownload = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        
+        if (!userId) {
+            alert("ダウンロードするにはログインが必要です。");
+            return;
+        }
+
+        if (!canDownload) {
+            alert("ダウンロード回数の上限（3回）に達しました。");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/attachments/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'proposal',
+                    id: proposalId,
+                    attachmentIndex,
+                    userId,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setDownloadCount(data.downloadCount);
+                setCanDownload(data.downloadCount < MAX_DOWNLOADS);
+                // ダウンロードを実行
+                window.open(url, '_blank');
+            } else {
+                alert(data.error || "ダウンロードに失敗しました。");
+            }
+        } catch (error) {
+            console.error("Download error:", error);
+            alert("ダウンロード中にエラーが発生しました。");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <button
+            onClick={handleDownload}
+            disabled={isLoading || !canDownload}
+            className={`flex items-center justify-between w-full gap-2 p-1.5 rounded transition-colors text-xs ${
+                canDownload 
+                    ? 'bg-white hover:bg-gray-100 text-primary cursor-pointer' 
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+        >
+            <div className="flex items-center gap-1">
+                <Download size={12} />
+                <span className="truncate">{displayName}</span>
+            </div>
+            <span className="text-xs text-gray-500 whitespace-nowrap">
+                {downloadCount}/{MAX_DOWNLOADS}回
+            </span>
+        </button>
+    );
+}
+
+// 案件添付ファイルのダウンロードコンポーネント（ダウンロード回数制限付き）
+function JobAttachmentDownload({ 
+    jobId, 
+    attachmentIndex, 
+    url, 
+    displayName, 
+    userId 
+}: { 
+    jobId: string; 
+    attachmentIndex: number; 
+    url: string; 
+    displayName: string; 
+    userId: string;
+}) {
+    const [downloadCount, setDownloadCount] = useState(0);
+    const [canDownload, setCanDownload] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const MAX_DOWNLOADS = 3;
+
+    useEffect(() => {
+        // 初期ダウンロード回数を取得
+        const fetchDownloadCount = async () => {
+            if (!userId) return;
+            try {
+                const response = await fetch(
+                    `/api/attachments/download?type=job&id=${jobId}&attachmentIndex=${attachmentIndex}&userId=${userId}`
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    setDownloadCount(data.downloadCount);
+                    setCanDownload(data.canDownload);
+                }
+            } catch (error) {
+                console.error("Failed to fetch download count:", error);
+            }
+        };
+        fetchDownloadCount();
+    }, [jobId, attachmentIndex, userId]);
+
+    const handleDownload = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        
+        if (!userId) {
+            alert("ダウンロードするにはログインが必要です。");
+            return;
+        }
+
+        if (!canDownload) {
+            alert("ダウンロード回数の上限（3回）に達しました。");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/attachments/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'job',
+                    id: jobId,
+                    attachmentIndex,
+                    userId,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setDownloadCount(data.downloadCount);
+                setCanDownload(data.downloadCount < MAX_DOWNLOADS);
+                // ダウンロードを実行
+                window.open(url, '_blank');
+            } else {
+                alert(data.error || "ダウンロードに失敗しました。");
+            }
+        } catch (error) {
+            console.error("Download error:", error);
+            alert("ダウンロード中にエラーが発生しました。");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <button
+            onClick={handleDownload}
+            disabled={isLoading || !canDownload}
+            className={`flex items-center justify-between w-full gap-2 p-2 rounded transition-colors text-sm ${
+                canDownload 
+                    ? 'bg-gray-50 hover:bg-gray-100 text-primary cursor-pointer' 
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+        >
+            <div className="flex items-center gap-2">
+                <Download size={14} />
+                <span className="truncate">{displayName}</span>
+            </div>
+            <span className="text-xs text-gray-500 whitespace-nowrap">
+                {downloadCount}/{MAX_DOWNLOADS}回
+            </span>
+        </button>
+    );
+}
+
 export default function WorkerJobDetailPage() {
     const params = useParams();
     const router = useRouter();
@@ -166,15 +374,28 @@ export default function WorkerJobDetailPage() {
         }
     };
 
+    const [fileError, setFileError] = useState<string | null>(null);
+    const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+
     const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFileError(null);
         if (e.target.files && e.target.files.length > 0) {
             const newFiles = Array.from(e.target.files);
-            setFiles(prev => [...prev, ...newFiles]);
+            const validFiles: File[] = [];
+            for (const file of newFiles) {
+                if (file.size > MAX_FILE_SIZE) {
+                    setFileError(`ファイル「${file.name}」は100MBを超えているため除外されました。`);
+                    continue;
+                }
+                validFiles.push(file);
+            }
+            setFiles(prev => [...prev, ...validFiles]);
         }
     };
 
     const removeFile = (index: number) => {
         setFiles(prev => prev.filter((_, i) => i !== index));
+        setFileError(null);
     };
 
     if (loading) return <div className="p-8 text-center">読み込み中...</div>;
@@ -277,6 +498,9 @@ export default function WorkerJobDetailPage() {
                                     <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
                                         <Paperclip size={16} /> 添付ファイル
                                     </h3>
+                                    <p className="text-xs text-gray-500 mb-2">
+                                        注意）各ファイルのダウンロードは3回までです。
+                                    </p>
                                     <div className="space-y-2">
                                         {job.attachments.map((att, index) => {
                                             // attが文字列（URL）の場合と、オブジェクト{name, url}の場合の両方に対応
@@ -335,17 +559,14 @@ export default function WorkerJobDetailPage() {
                                                 : getFileNameFromUrl(attUrl, index);
                                             
                                             return (
-                                                <a 
-                                                    key={index} 
-                                                    href={attUrl} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer"
-                                                    download={displayName}
-                                                    className="flex items-center gap-2 p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors text-sm text-primary"
-                                                >
-                                                    <Download size={14} />
-                                                    <span className="truncate">{displayName}</span>
-                                                </a>
+                                                <JobAttachmentDownload
+                                                    key={index}
+                                                    jobId={job.id}
+                                                    attachmentIndex={index}
+                                                    url={attUrl}
+                                                    displayName={displayName}
+                                                    userId={user?.uid || ''}
+                                                />
                                             );
                                         })}
                                     </div>
@@ -408,8 +629,11 @@ export default function WorkerJobDetailPage() {
                                             {/* 添付ファイル */}
                                             {myProposal.attachments && myProposal.attachments.length > 0 && (
                                                 <div className="mt-3 pt-3 border-t border-gray-200">
-                                                    <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                                                    <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
                                                         <Paperclip size={12} /> 添付ファイル
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 mb-2">
+                                                        注意）各ファイルのダウンロードは3回までです。
                                                     </p>
                                                     <div className="space-y-1">
                                                         {myProposal.attachments.map((att, index) => {
@@ -432,17 +656,14 @@ export default function WorkerJobDetailPage() {
                                                                 }
                                                             };
                                                             return (
-                                                                <a 
-                                                                    key={index} 
-                                                                    href={att.url} 
-                                                                    target="_blank" 
-                                                                    rel="noopener noreferrer"
-                                                                    download={getFileName(att)}
-                                                                    className="flex items-center gap-1 p-1.5 bg-white rounded hover:bg-gray-100 transition-colors text-xs text-primary"
-                                                                >
-                                                                    <Download size={12} />
-                                                                    <span className="truncate">{getFileName(att)}</span>
-                                                                </a>
+                                                                <ProposalAttachmentDownload
+                                                                    key={index}
+                                                                    proposalId={myProposal.id}
+                                                                    attachmentIndex={index}
+                                                                    url={att.url}
+                                                                    displayName={getFileName(att)}
+                                                                    userId={user?.uid || ''}
+                                                                />
                                                             );
                                                         })}
                                                     </div>
@@ -536,6 +757,12 @@ export default function WorkerJobDetailPage() {
                                                 </span>
                                             </label>
                                         </div>
+                                        <p className="mt-2 text-xs text-gray-500">
+                                            注意）添付ファイルは最大100MBまでアップロード可能です。各ファイルのダウンロードは3回までです。100MBを超える場合は、外部ファイル共有サービス（Google Drive、Dropbox等）のURLをメッセージ欄に記載してください。
+                                        </p>
+                                        {fileError && (
+                                            <p className="mt-2 text-sm text-red-600">{fileError}</p>
+                                        )}
                                         {files.length > 0 && (
                                             <div className="mt-2 space-y-2">
                                                 {files.map((file, index) => (
@@ -543,6 +770,7 @@ export default function WorkerJobDetailPage() {
                                                         <div className="flex items-center gap-2">
                                                             <FileText className="h-4 w-4 text-gray-500" />
                                                             <span className="text-sm text-gray-700 truncate max-w-[200px]">{file.name}</span>
+                                                            <span className="text-xs text-gray-400">({(file.size / (1024 * 1024)).toFixed(2)} MB)</span>
                                                         </div>
                                                         <button
                                                             type="button"

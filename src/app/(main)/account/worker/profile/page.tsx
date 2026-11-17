@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { updateUser } from "@/lib/db";
+import { updateUser, getUser } from "@/lib/db";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
+import ProfileImageEditor from "@/components/features/profile/ProfileImageEditor";
+import { User as UserType } from "@/types";
 
 export default function WorkerProfilePage() {
-  const { user } = useAuth();
+  const { user, firebaseUser } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [userData, setUserData] = useState<UserType | null>(null);
   const [formData, setFormData] = useState({
     displayName: "",
     title: "",
@@ -18,8 +21,21 @@ export default function WorkerProfilePage() {
     hoursPerWeek: "週10-20時間",
   });
 
+  const fetchUserData = useCallback(async () => {
+    if (!firebaseUser) return;
+    try {
+      const freshUser = await getUser(firebaseUser.uid);
+      if (freshUser) {
+        setUserData(freshUser);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  }, [firebaseUser]);
+
   useEffect(() => {
     if (user) {
+      setUserData(user);
       setFormData({
         displayName: user.displayName || "",
         title: user.workerProfile?.title || "",
@@ -29,6 +45,10 @@ export default function WorkerProfilePage() {
       });
     }
   }, [user]);
+
+  const handleImageUpdate = useCallback(() => {
+    fetchUserData();
+  }, [fetchUserData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +79,11 @@ export default function WorkerProfilePage() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-secondary mb-6">ワーカープロフィール編集</h1>
       <Card className="max-w-2xl p-6">
+        {/* プロフィール画像エディター */}
+        {userData && (
+          <ProfileImageEditor user={userData} onUpdate={handleImageUpdate} />
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

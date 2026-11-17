@@ -9,7 +9,7 @@ export default function Home() {
             <Header />
             <main className="flex-grow">
                 {/* Hero Section */}
-                <section className="relative pt-24 pb-32 overflow-hidden">
+                <section className="relative pt-16 pb-24 md:pt-24 md:pb-32 overflow-hidden">
                     <div className="absolute inset-0 bg-gray-50 -skew-y-3 origin-top-left transform -translate-y-20 z-0"></div>
                     <div className="container mx-auto px-4 relative z-10">
                         <div className="max-w-4xl mx-auto text-center">
@@ -20,14 +20,21 @@ export default function Home() {
                                 </span>
                                 業界最安水準の手数料 5%
                             </div>
-                            <h1 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight text-secondary">
-                                プロフェッショナルな<br className="hidden md:block" />
-                                仕事を、もっと自由に。
+                            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 tracking-tight text-secondary">
+                                手数料5% 　だから、<br className="hidden md:block" />
+                                頼みやすく、稼ぎやすい。
                             </h1>
-                            <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+                            <p className="text-xl text-gray-600 mb-6 max-w-2xl mx-auto leading-relaxed">
                                 Project Market Hubは、無駄なコストを極限までカットした<br className="hidden sm:block" />
                                 次世代のクラウドソーシングプラットフォームです。
                             </p>
+                            <div className="flex flex-wrap justify-center gap-3 md:gap-6 mb-12 text-gray-600">
+                                <span className="text-sm md:text-base font-medium">Web開発</span>
+                                <span className="text-sm md:text-base font-medium">デザイン</span>
+                                <span className="text-sm md:text-base font-medium">ライティング</span>
+                                <span className="text-sm md:text-base font-medium">動画編集</span>
+                                <span className="text-sm md:text-base font-medium">その他なんでも</span>
+                            </div>
                             
                             <TopPageButtons />
                             
@@ -42,7 +49,7 @@ export default function Home() {
                 </section>
 
                 {/* Value Proposition Section */}
-                <section className="py-24 bg-white">
+                <section className="py-16 md:py-24 bg-white">
                     <div className="container mx-auto px-4">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
                             {/* Feature 1 */}

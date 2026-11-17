@@ -16,17 +16,17 @@ export const Footer = () => {
 
                     <div>
                         <h4 className="font-semibold mb-4">サービス</h4>
-                        <ul className="space-y-2 text-sm text-gray-300">
-                            <li><Link href="/worker/search" className="hover:text-white">仕事を探す</Link></li>
+                        <ul className="space-y-4 text-base text-gray-300">
+                            <li><Link href="/worker/search" className="hover:text-white block py-1">仕事を探す</Link></li>
                         </ul>
                     </div>
 
                     <div>
                         <h4 className="font-semibold mb-4">企業情報</h4>
-                        <ul className="space-y-2 text-sm text-gray-300">
-                            <li><Link href="/terms" className="hover:text-white">利用規約</Link></li>
-                            <li><Link href="/privacy" className="hover:text-white">プライバシーポリシー</Link></li>
-                            <li><Link href="/law" className="hover:text-white">特定商取引法に基づく表記</Link></li>
+                        <ul className="space-y-4 text-base text-gray-300">
+                            <li><Link href="/terms" className="hover:text-white block py-1">利用規約</Link></li>
+                            <li><Link href="/privacy" className="hover:text-white block py-1">プライバシーポリシー</Link></li>
+                            <li><Link href="/law" className="hover:text-white block py-1">特定商取引法に基づく表記</Link></li>
                         </ul>
                     </div>
 

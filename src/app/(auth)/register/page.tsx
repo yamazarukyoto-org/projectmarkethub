@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
+import { getAnalytics, logEvent } from "firebase/analytics";
 import { createUser, getUser } from "@/lib/db";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -66,7 +67,17 @@ export default function RegisterPage() {
                 jobsCompleted: 0,
             });
 
-            router.push("/client/dashboard");
+            try {
+                const analytics = getAnalytics();
+                logEvent(analytics, 'sign_up_complete');
+            } catch (e) {
+                console.error("GA4 Event Error:", e);
+            }
+
+            // データ送信の時間稼ぎとして0.5秒待つ
+            setTimeout(() => {
+                router.push("/client/dashboard");
+            }, 500);
         } catch (err: any) {
             console.error(err);
             if (err.code === 'auth/email-already-in-use') {
@@ -107,7 +118,17 @@ export default function RegisterPage() {
                 });
             }
 
-            router.push("/client/dashboard");
+            try {
+                const analytics = getAnalytics();
+                logEvent(analytics, 'sign_up_complete');
+            } catch (e) {
+                console.error("GA4 Event Error:", e);
+            }
+
+            // データ送信の時間稼ぎとして0.5秒待つ
+            setTimeout(() => {
+                router.push("/client/dashboard");
+            }, 500);
         } catch (err: any) {
             console.error(err);
             let errorMessage = "Googleログイン中にエラーが発生しました。";

@@ -46,7 +46,7 @@ export default function LawPage() {
                         </tr>
                         <tr className="border-b border-gray-100">
                             <th className="py-4 px-6 bg-gray-50 font-semibold text-secondary">支払方法</th>
-                            <td className="py-4 px-6 text-text-body">クレジットカード決済 (Stripe)、銀行振込</td>
+                            <td className="py-4 px-6 text-text-body">クレジットカード決済 (Stripe)</td>
                         </tr>
                         <tr className="border-b border-gray-100">
                             <th className="py-4 px-6 bg-gray-50 font-semibold text-secondary">支払時期</th>

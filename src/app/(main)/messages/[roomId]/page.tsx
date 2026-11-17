@@ -14,7 +14,7 @@ import { Job, Proposal, Contract, User } from "@/types";
 import { doc, onSnapshot, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { getUser } from "@/lib/db";
-import { ArrowLeft, DollarSign, Calendar, CheckCircle, CreditCard, Clock, MessageSquare } from "lucide-react";
+import { ArrowLeft, DollarSign, Calendar, CheckCircle, CreditCard, Clock, MessageSquare, FileText, AlertTriangle } from "lucide-react";
 
 // Force dynamic rendering to avoid caching issues
 export const dynamic = 'force-dynamic';
@@ -174,6 +174,8 @@ export default function MessageRoomPage() {
                                 [proposal.clientId]: true,
                                 [proposal.workerId]: true
                             },
+                            clientTotalUploadSize: 0,
+                            workerTotalUploadSize: 0,
                             createdAt: serverTimestamp(),
                             updatedAt: serverTimestamp()
                         });
@@ -199,6 +201,8 @@ export default function MessageRoomPage() {
                                 [contract.clientId]: true,
                                 [contract.workerId]: true
                             },
+                            clientTotalUploadSize: 0,
+                            workerTotalUploadSize: 0,
                             createdAt: serverTimestamp(),
                             updatedAt: serverTimestamp()
                         });
@@ -320,8 +324,13 @@ export default function MessageRoomPage() {
                 <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0 overflow-hidden">
                     {/* Main Chat Area */}
                     <div className="flex-1 h-full min-h-0">
-                        {isRoomReady ? (
-                            <ChatBox roomId={roomId} currentUserId={user.uid} />
+                    {isRoomReady ? (
+                            <ChatBox 
+                                roomId={roomId} 
+                                currentUserId={user.uid} 
+                                clientId={contract.clientId}
+                                workerId={contract.workerId}
+                            />
                         ) : (
                             <div className="flex items-center justify-center h-full bg-gray-50 rounded-xl border">
                                 <p className="text-gray-500">チャットルームを準備中...</p>
@@ -404,17 +413,22 @@ export default function MessageRoomPage() {
                                 {/* 提案メッセージ（コンペ方式で提案がある場合） */}
                                 {proposal && proposal.message && (
                                     <div className="pt-4 border-t">
-                                        <h3 className="text-sm font-bold mb-2">提案内容</h3>
-                                        <p className="text-sm text-gray-600 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg">
-                                            {proposal.message}
-                                        </p>
+                                        <div className="p-4 bg-gray-50 rounded-lg border-l-4 border-gray-400">
+                                            <h3 className="text-sm font-bold mb-2 text-gray-700 flex items-center gap-2">
+                                                <FileText size={18} />
+                                                提案内容
+                                            </h3>
+                                            <p className="text-sm text-gray-600 whitespace-pre-wrap bg-white p-3 rounded border border-gray-200">
+                                                {proposal.message}
+                                            </p>
+                                        </div>
                                     </div>
                                 )}
 
                                 {/* Contract Status */}
                                 <div className="pt-4 border-t">
-                                    <div className="bg-green-50 text-green-800 p-3 rounded-lg text-center text-sm font-bold">
-                                        <CheckCircle size={16} className="inline mr-1" />
+                                    <div className="bg-green-50 text-green-800 p-3 rounded-lg border-l-4 border-green-500 text-center text-sm font-bold flex items-center justify-center gap-2">
+                                        <CheckCircle size={18} />
                                         契約済み
                                     </div>
                                     <p className="text-xs text-gray-500 mt-2 text-center">
@@ -569,7 +583,12 @@ export default function MessageRoomPage() {
                 {/* Main Chat Area */}
                 <div className="lg:flex-1 lg:h-full h-[calc(100dvh-140px)] min-h-0">
                     {isRoomReady ? (
-                        <ChatBox roomId={roomId} currentUserId={user.uid} />
+                        <ChatBox 
+                            roomId={roomId} 
+                            currentUserId={user.uid}
+                            clientId={proposal.clientId}
+                            workerId={proposal.workerId}
+                        />
                     ) : (
                         <div className="flex items-center justify-center h-full bg-gray-50 rounded-xl border">
                             <p className="text-gray-500">チャットルームを準備中...</p>
@@ -663,13 +682,13 @@ export default function MessageRoomPage() {
                                         {/* ステータスに応じた表示 */}
                                         {contract?.status === 'waiting_for_escrow' ? (
                                             <>
-                                                <div className="font-bold text-sm mb-2 flex items-center justify-center">
+                                                <div className="font-bold text-sm mb-2 flex items-center justify-center text-yellow-800">
                                                     <CreditCard size={16} className="inline mr-1" />
                                                     仮決済待ち
                                                 </div>
                                                 {isClient ? (
                                                     <>
-                                                        <p className="text-xs mb-3">
+                                                        <p className="text-xs mb-3 text-yellow-700">
                                                             業務を開始するには、仮決済が必要です。
                                                         </p>
                                                         <Button 
@@ -683,7 +702,7 @@ export default function MessageRoomPage() {
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <p className="text-xs mb-3">
+                                                        <p className="text-xs mb-3 text-yellow-700">
                                                             クライアントの仮決済をお待ちください。
                                                         </p>
                                                         <Button 
@@ -691,7 +710,7 @@ export default function MessageRoomPage() {
                                                                 router.push(`/worker/contracts/${contract.id}`);
                                                             }}
                                                             variant="outline"
-                                                            className="w-full text-sm h-9"
+                                                            className="w-full text-sm h-9 border-yellow-300 text-yellow-800 hover:bg-yellow-100"
                                                         >
                                                             契約詳細を確認する
                                                         </Button>
@@ -700,25 +719,25 @@ export default function MessageRoomPage() {
                                             </>
                                         ) : contract?.status === 'pending_signature' ? (
                                             <>
-                                                <div className="font-bold text-sm mb-2 flex items-center justify-center">
-                                                    <Clock size={16} className="inline mr-1" />
+                                                <div className="font-bold text-sm mb-2 flex items-center justify-center text-blue-800">
+                                                    <FileText size={16} className="inline mr-1" />
                                                     契約合意待ち
                                                 </div>
-                                                <p className="text-xs mb-3">
+                                                <p className="text-xs mb-3 text-blue-700">
                                                     {isClient ? 'ワーカーの合意をお待ちください。' : '契約内容を確認し、合意してください。'}
                                                 </p>
                                                 <Button 
                                                     onClick={() => {
                                                         router.push(isClient ? `/client/contracts/${contract.id}` : `/worker/contracts/${contract.id}`);
                                                     }}
-                                                    className="w-full bg-orange-500 hover:bg-orange-600 text-white text-sm h-9 shadow-sm"
+                                                    className="w-full bg-primary hover:bg-primary-hover text-white text-sm h-9 shadow-sm"
                                                 >
                                                     契約詳細を確認する
                                                 </Button>
                                             </>
                                         ) : (
                                             <>
-                                                <div className="font-bold text-sm mb-3 flex items-center justify-center">
+                                                <div className="font-bold text-sm mb-3 flex items-center justify-center text-green-800">
                                                     <CheckCircle size={16} className="inline mr-1" />
                                                     {contract?.status === 'escrow' ? '仮決済済み' :
                                                      contract?.status === 'submitted' ? '納品済み' :
@@ -843,10 +862,13 @@ export default function MessageRoomPage() {
             >
                 <div className="space-y-4">
                     {errorMessage && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-                            <p className="font-bold text-sm mb-1">⚠️ エラーが発生しました</p>
-                            <p className="text-sm">{errorMessage}</p>
-                            <p className="text-xs mt-2 text-red-500">
+                        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg">
+                            <p className="font-bold text-sm mb-1 flex items-center gap-2">
+                                <AlertTriangle size={18} />
+                                エラーが発生しました
+                            </p>
+                            <p className="text-sm pl-7">{errorMessage}</p>
+                            <p className="text-xs mt-2 text-red-500 pl-7">
                                 「再試行する」ボタンを押してください。
                             </p>
                             <button 

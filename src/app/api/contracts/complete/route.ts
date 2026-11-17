@@ -78,15 +78,22 @@ export async function POST(req: NextRequest) {
     }
 
     // 7. 金額計算
-    const amount = contract?.amount || 0; // 税抜契約金額
-    const tax = Math.floor(amount * 0.10);
-    const totalAmount = amount + tax; // クライアント支払総額 (仮決済額)
-    
-    const platformFeeBase = Math.floor(amount * 0.05);
-    const platformFeeTax = Math.floor(platformFeeBase * 0.10);
-    const platformFee = platformFeeBase + platformFeeTax; // システム手数料 (税込)
-    
-    const transferAmount = totalAmount - platformFee; // ワーカー受取額
+    // 契約情報から計算済みの値を取得することを優先
+    let transferAmount = contract?.workerReceiveAmount;
+
+    if (!transferAmount) {
+        // フォールバック: 税込金額から逆算
+        // 新仕様: amount/totalAmountは税込金額として扱われる場合があるため、
+        // totalAmountがあればそれを、なければamountを税込金額として扱う
+        const totalAmount = contract?.totalAmount || contract?.amount || 0;
+        const amountExcludingTax = Math.round(totalAmount * 10 / 11);
+        
+        const platformFeeBase = Math.floor(amountExcludingTax * 0.05);
+        const platformFeeTax = Math.floor(platformFeeBase * 0.10);
+        const platformFee = platformFeeBase + platformFeeTax;
+        
+        transferAmount = totalAmount - platformFee;
+    }
 
     // 8. PaymentIntent Capture (決済確定)
     // 既にCapture済みの場合はエラーになる可能性があるため、ステータスチェックを入れるのが理想だが、

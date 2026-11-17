@@ -5,6 +5,7 @@ export interface User {
     email: string;
     displayName: string;
     photoURL: string;
+    googlePhotoURL?: string;  // Googleアカウントの元のアイコンURL（リセット用に保持）
     userType: 'client' | 'worker' | 'both';
     createdAt: Timestamp;
     updatedAt: Timestamp;

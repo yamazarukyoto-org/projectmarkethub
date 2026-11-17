@@ -78,19 +78,40 @@ export default function PostJobPage() {
         setIsDragging(false);
     }, []);
 
+    const [fileError, setFileError] = useState<string | null>(null);
+    const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+
     const onDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
         setIsDragging(false);
+        setFileError(null);
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             const newFiles = Array.from(e.dataTransfer.files);
-            setFiles(prev => [...prev, ...newFiles]);
+            const validFiles: File[] = [];
+            for (const file of newFiles) {
+                if (file.size > MAX_FILE_SIZE) {
+                    setFileError(`ファイル「${file.name}」は100MBを超えているため除外されました。`);
+                    continue;
+                }
+                validFiles.push(file);
+            }
+            setFiles(prev => [...prev, ...validFiles]);
         }
     }, []);
 
     const onFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setFileError(null);
         if (e.target.files && e.target.files.length > 0) {
             const newFiles = Array.from(e.target.files);
-            setFiles(prev => [...prev, ...newFiles]);
+            const validFiles: File[] = [];
+            for (const file of newFiles) {
+                if (file.size > MAX_FILE_SIZE) {
+                    setFileError(`ファイル「${file.name}」は100MBを超えているため除外されました。`);
+                    continue;
+                }
+                validFiles.push(file);
+            }
+            setFiles(prev => [...prev, ...validFiles]);
         }
     }, []);
 
@@ -266,6 +287,12 @@ export default function PostJobPage() {
                                     </span>
                                 </label>
                             </div>
+                            <p className="mt-2 text-xs text-gray-500">
+                                注意）添付ファイルは最大100MBまでアップロード可能です。各ファイルのダウンロードは3回までです。100MBを超える場合は、外部ファイル共有サービス（Google Drive、Dropbox等）のURLを詳細欄に記載してください。
+                            </p>
+                            {fileError && (
+                                <p className="mt-2 text-sm text-red-600">{fileError}</p>
+                            )}
                             {files.length > 0 && (
                                 <div className="mt-4 space-y-2">
                                     {files.map((file, index) => (
@@ -273,7 +300,7 @@ export default function PostJobPage() {
                                             <div className="flex items-center gap-2">
                                                 <FileText className="h-4 w-4 text-gray-500" />
                                                 <span className="text-sm text-gray-700 truncate max-w-[200px]">{file.name}</span>
-                                                <span className="text-xs text-gray-400">({(file.size / 1024).toFixed(1)} KB)</span>
+                                                <span className="text-xs text-gray-400">({(file.size / (1024 * 1024)).toFixed(2)} MB)</span>
                                             </div>
                                             <button
                                                 type="button"
